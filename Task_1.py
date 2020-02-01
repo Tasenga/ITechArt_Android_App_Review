@@ -15,7 +15,7 @@ def avg_rating(main_dict):
         asins_value[item['asin']] = [asins_value.get(item['asin'])[0] + item['overall'], asins_value.get(item['asin'])[1]+1]
     avg_overall = []
     for key, value in asins_value.items():
-        avg_overall.append([key, asins_value.get(key)[0] / asins_value.get(key)[1], asins_value.get(key)[1]])
+        avg_overall.append([key, asins_value.get(key)[0] / asins_value.get(key)[1]])
     return avg_overall
 
 # 1) Task_1.py: to create file general-stats.cvs containing information about:
