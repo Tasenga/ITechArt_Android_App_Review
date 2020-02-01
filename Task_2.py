@@ -19,8 +19,12 @@ def avg_rating(main_dict):
 
 # create file apps-stats.cvs containing information above:
 def file_create(data):
-    with open(os.path.join(os.path.dirname(os.path.abspath(__file__)),
-                           'resulting data', 'apps-stats.cvs'), "w", newline='') as csv_file:
+    path = os.path.dirname(os.path.abspath(__file__))
+    try:
+        os.mkdir(os.path.join(path, 'resulting data'))
+    except:
+        pass
+    with open(os.path.join(path, 'resulting data', 'apps-stats.cvs'), "w", newline='') as csv_file:
         writer = csv.writer(csv_file, delimiter='\t')
         for line in data:
             writer.writerow(line)
