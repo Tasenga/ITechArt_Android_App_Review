@@ -130,3 +130,7 @@ dmypy.json
 
 # Сreated objects
 resulting data/
+
+# Source
+*.json
+*.gz
