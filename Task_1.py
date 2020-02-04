@@ -27,15 +27,12 @@ def best_comment(main_dict):
     1.2. Task_1.py: to create file general-stats.cvs containing information about
     messages with the most “likes” from the entire data set and the application (asin) associated with it;
     '''
-    likes = {}
-    for key, value in main_dict.items():
-        likes[key] = value['helpful'][0]
-    sort_likes = sorted(likes.items(), key=itemgetter(1), reverse=True)
+    best_comment = max(main_dict.values(), key=lambda review: review['helpful'][0])
     comment = [
-        ['messages with the most “likes” from the entire data set and the application (asin) associated with it:'],
-        ['like:', main_dict[sort_likes[0][0]]['helpful'][0]],
-        ['asin:', main_dict[sort_likes[0][0]]['asin']],
-        ['reviewText:', main_dict[sort_likes[0][0]]['reviewText']]
+        ['Messages with the most “likes” from the entire data set and the application (asin) associated with it:'],
+        ['like:', best_comment['helpful'][0]],
+        ['asin:', best_comment['asin']],
+        ['reviewText:', best_comment['reviewText']]
     ]
     return comment
 
@@ -71,7 +68,7 @@ def nearest_review(main_dict):
     for message in deltatime:
         if message[2] == min(time_deltatime):
             comment = [
-                ['the shortest interval between ratings of one user (among all users) and the length of both messages which create this interval:'],
+                ['The shortest interval between ratings of one user (among all users) and the length of both messages which create this interval:'],
                 ['interval = ', str(message[2]//60//60) + 'hour ' + str(message[2]//60%60) + 'min '+ str(message[2]%60%60) + 'sec;'],
                 ['lenght comment_1:', len(main_dict[message[0]]['reviewText'])],
                 ['lenght comment_2:', len(main_dict[message[1]]['reviewText'])]
@@ -86,23 +83,16 @@ def bad_comment(main_dict):
     1.3. Task_1.py: to create file general-stats.cvs containing information about
     the application which received the most useless message;
     '''
-    helpfulness = []
-    for key, value in main_dict.items():
-        if value['helpful'][1] != 0:
-            helpfulness.append([key, value['helpful'][0]/value['helpful'][1]])
-    result_helpfulness = []
-    for message in helpfulness:
-        result_helpfulness.append(message[1])
-    for message in helpfulness:
-        if message[1] == min(result_helpfulness):
-            comment = [
-                ['the application which received the most useless message:'],
-                ['asin:', main_dict[message[0]]['asin']],
-                ['reviewText:', main_dict[message[0]]['reviewText']],
-                [' helpfulness:', str(message[1])]
-            ]
-            if comment:
-                break
+    bad_comment = min(
+        dict(filter(lambda review: review[1]['helpful'][1] != 0, main_dict.items())).values(),
+        key=lambda review: review['helpful'][0]/review['helpful'][1]
+    )
+    comment = [
+        ['The application which received the most useless message:'],
+        ['helpfulness:', str(bad_comment['helpful'][0]/bad_comment['helpful'][1]*100) + '%'],
+        ['asin:', bad_comment['asin']],
+        ['reviewText:', bad_comment['reviewText']]
+    ]
     return comment
 
 def nonanalys_data(main_dict, analyzed_data):
@@ -111,7 +101,7 @@ def nonanalys_data(main_dict, analyzed_data):
     1.5. Task_1.py: to create file general-stats.cvs containing information about
     the number of records that cannot be processed for every point above.
     '''
-    comment = [['The number of records that cannot be processed: ', ]]
+    comment = [['The number of records that cannot be processed: ']]
 
     count_unanalyzed_1 = 0
     for item in main_dict.values():
