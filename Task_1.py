@@ -4,9 +4,12 @@ import csv
 from operator import itemgetter
 
 
-# 1) Task_1.py: to create file general-stats.cvs containing information about:
-#    1.1. average rating (overall) of each application (asin);
 def avg_rating(main_dict):
+    '''function returns average rating (overall) of each application (asin)
+
+    1.1. Task_1.py: to create file general-stats.cvs containing information about
+    average rating (overall) of each application (asin);
+    '''
     asins = []
     for item in main_dict.values():
         asins.append(item['asin'])
@@ -18,9 +21,12 @@ def avg_rating(main_dict):
         avg_overall.append([key, asins_value.get(key)[0] / asins_value.get(key)[1]])
     return avg_overall
 
-# 1) Task_1.py: to create file general-stats.cvs containing information about:
-#    1.2. messages with the most “likes” from the entire data set and the application (asin) associated with it;
 def best_comment(main_dict):
+    '''function returns messages with the most “likes” and the application (asin) associated with it
+
+    1.2. Task_1.py: to create file general-stats.cvs containing information about
+    messages with the most “likes” from the entire data set and the application (asin) associated with it;
+    '''
     likes = {}
     for key, value in main_dict.items():
         likes[key] = value['helpful'][0]
@@ -32,9 +38,13 @@ def best_comment(main_dict):
                ]
     return comment
 
-# 1) Task_1.py: to create file general-stats.cvs containing information about:
-#    1.3. the shortest interval between ratings of one user (among all users) and the length of both messages which create this interval;
 def nearest_review(main_dict):
+    '''function returns the shortest interval between ratings of one user and the length of both messages
+
+    Task_1.py: to create file general-stats.cvs containing information about
+    the shortest interval between ratings of one user (among all users) and
+    the length of both messages which create this interval;
+    '''
     all_timereview = {}
     for key, value in main_dict.items():
         if 'reviewerName' in value.keys() and 'unixReviewTime' in value.keys() and value['reviewerName'] != 'Amazon Customer':
@@ -69,10 +79,14 @@ def nearest_review(main_dict):
                 break
     return comment
 
-
-# 1) Task_1.py: to create file general-stats.cvs containing information about:
-#    1.4. the application which received the most useless message;
 def bad_comment(main_dict):
+    '''function returns the application which received the most useless message
+
+    1.3. Task_1.py: to create file general-stats.cvs containing information about
+    the application which received the most useless message;
+    '''
+
+
     helpfulness = []
     for key, value in main_dict.items():
         if value['helpful'][1] != 0:
@@ -94,6 +108,11 @@ def bad_comment(main_dict):
 # 1) Task_1.py: to create file general-stats.cvs containing information about:
 #    1.5. the number of records that cannot be processed for every point above.
 def nonanalys_data(main_dict, analyzed_data):
+    '''function returns the number of records that cannot be processed for every point above.
+
+    1.5. Task_1.py: to create file general-stats.cvs containing information about
+    the number of records that cannot be processed for every point above.
+    '''
     comment = []
     count_unanalyzed_1 = 0
     for item in main_dict.values():

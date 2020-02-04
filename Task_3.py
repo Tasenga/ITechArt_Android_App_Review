@@ -4,9 +4,13 @@ import os
 from operator import itemgetter
 import re
 
-# 3) Task_3.py: to create file words-stats1.cvs и words-stats2.cvs
-# containing information about the most popular words from positive and negative messages.
+
 def word_list_from_positive_comment(main_dict):
+    '''function returns the most popular words from positive messages
+
+    3.1. Task_3.py: to create file words-stats1.cvs и words-stats2.cvs
+    containing information about the most popular words from positive and negative messages.
+    '''
     positive_comment = []
     for item in main_dict.values():
         if 'overall' in item.keys():
@@ -23,6 +27,11 @@ def word_list_from_positive_comment(main_dict):
     return popular_in_positive_comment
 
 def word_list_from_negative_comment(main_dict):
+    '''function returns the most popular words from negative messages
+
+    3.2. Task_3.py: to create file words-stats1.cvs и words-stats2.cvs
+    containing information about the most popular words from positive and negative messages.
+    '''
     negative_comment = []
     for item in main_dict.values():
         if 'overall' in item.keys():

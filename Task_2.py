@@ -1,11 +1,14 @@
 import os
 from source import get_data
 import csv
-from operator import itemgetter
 
-# 2) Task_2.py: to create file apps-stats.cvs containing information about
-# average rating (overall) of each application (asin) and number of voters.
+
 def avg_rating(main_dict):
+    '''function returns average rating of each application and number of voters
+
+    2.1. Task_2.py: to create file apps-stats.cvs containing information about
+    average rating (overall) of each application (asin) and number of voters.
+    '''
     asins = []
     for item in main_dict.values():
         asins.append(item['asin'])
