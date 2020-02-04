@@ -1,11 +1,9 @@
-import os
 from source import get_data
-import csv
 from operator import itemgetter
 from document_creation import file_create
 
 
-def avg_rating(main_dict):
+def avg_rating(main_dict, voters=False):
     '''function returns an average rating (overall) of each application (asin)
 
     1.1. Task_1.py: to create file general-stats.cvs containing information about
@@ -15,9 +13,12 @@ def avg_rating(main_dict):
     for item in main_dict.values():
         overall, count = asins_value.get(item['asin'], [0, 0])
         asins_value[item['asin']] = [overall + item['overall'], count + 1]
-    avg_overall = []
-    for key, value in asins_value.items():
-        avg_overall.append([key, asins_value.get(key)[0] / asins_value.get(key)[1]])
+    if not voters:
+        avg_overall = [[key, str(round(value[0] / value[1], 2)).replace('.', ',')]
+                       for key, value in asins_value.items()]
+    else:
+        avg_overall = [[key, str(round(value[0] / value[1], 2)).replace('.', ','), value[1]]
+                       for key, value in asins_value.items()]
     return avg_overall
 
 def best_comment(main_dict):
@@ -110,50 +111,43 @@ def nonanalys_data(main_dict, analyzed_data):
     1.5. Task_1.py: to create file general-stats.cvs containing information about
     the number of records that cannot be processed for every point above.
     '''
-    comment = ['The number of records that cannot be processed: ']
+    comment = [['The number of records that cannot be processed: ', ]]
+
     count_unanalyzed_1 = 0
     for item in main_dict.values():
         if not 'asin' in item.keys() or not 'overall' in item.keys():
             count_unanalyzed_1 += 1
-    comment_1 = [count_unanalyzed_1, ' - for average rating (overall) of each application (asin)']
-    comment.append(comment_1)
+    comment.append([count_unanalyzed_1, ' - for average rating (overall) of each application (asin)'])
 
     count_unanalyzed_2 = 0
     for item in main_dict.values():
         if not 'asin' in item.keys() or not 'helpful' in item.keys() or not 'reviewText' in item.keys():
             count_unanalyzed_2 += 1
-    comment_2 = [count_unanalyzed_2, ' - to get the application which received the most useless message']
-    comment.append(comment_2)
+    comment.append([count_unanalyzed_2, ' - to get the application which received the most useless message'])
 
     count_unanalyzed_3 = len(main_dict) - len(set(analyzed_data))
-    comment_3 = [
-        str(count_unanalyzed_3) + ' or ' + str(round(count_unanalyzed_3/len(main_dict) * 100)) + '% ',
-        ' - to get the shortest interval between ratings of one user (among all users) '
-        'and the length of both messages which create this interval;']
-    comment.append(comment_3)
+    comment.append([str(count_unanalyzed_3) + ' or ' + str(round(count_unanalyzed_3/len(main_dict) * 100)) + '% ',
+                    ' - to get the shortest interval between ratings of one user (among all users) '
+                    'and the length of both messages which create this interval;'])
 
     count_unanalyzed_4 = count_unanalyzed_2
     for item in main_dict.values():
         if item['helpful'][1] == 0:
             count_unanalyzed_4 += 1
-    comment_4 = [
-        str(count_unanalyzed_4) + ' or ' + str(round(count_unanalyzed_4/len(main_dict) * 100)) + '% ',
-        ' - to get the application which received the most useless message']
-    comment.append(comment_4)
+    comment.append([str(count_unanalyzed_4) + ' or ' + str(round(count_unanalyzed_4/len(main_dict) * 100)) + '% ',
+                    ' - to get the application which received the most useless message'])
     return comment
 
 
 if __name__ == "__main__":
     main_dict = get_data.open_gzip()
     analyzed_data = []
-    print(avg_rating(main_dict))
-    print(len(avg_rating(main_dict)))
-    # file_name = 'general-stats.cvs'
-    # file_create().save_file(file_name, avg_rating(main_dict))
-    # file_create().save_file(file_name, best_comment(main_dict), 'a')
-    # file_create().save_file(file_name, nearest_review(main_dict), 'a')
-    # file_create().save_file(file_name, bad_comment(main_dict), 'a')
-    # file_create().save_file(file_name, nonanalys_data(main_dict, analyzed_data), 'a')
+    file_name = 'general-stats.cvs'
+    file_create().save_file(file_name, avg_rating(main_dict))
+    file_create().save_file(file_name, best_comment(main_dict), 'a')
+    file_create().save_file(file_name, nearest_review(main_dict), 'a')
+    file_create().save_file(file_name, bad_comment(main_dict), 'a')
+    file_create().save_file(file_name, nonanalys_data(main_dict, analyzed_data), 'a')
 
 
 
