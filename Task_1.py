@@ -11,12 +11,10 @@ def avg_rating(main_dict):
     1.1. Task_1.py: to create file general-stats.cvs containing information about
     average rating (overall) of each application (asin);
     '''
-    asins = []
+    asins_value = {}
     for item in main_dict.values():
-        asins.append(item['asin'])
-    asins_value = dict.fromkeys(set(asins), [0, 0])
-    for item in main_dict.values():
-        asins_value[item['asin']] = [asins_value.get(item['asin'])[0] + item['overall'], asins_value.get(item['asin'])[1]+1]
+        overall, count = asins_value.get(item['asin'], [0, 0])
+        asins_value[item['asin']] = [overall + item['overall'], count + 1]
     avg_overall = []
     for key, value in asins_value.items():
         avg_overall.append([key, asins_value.get(key)[0] / asins_value.get(key)[1]])
@@ -148,12 +146,14 @@ def nonanalys_data(main_dict, analyzed_data):
 if __name__ == "__main__":
     main_dict = get_data.open_gzip()
     analyzed_data = []
-    file_name = 'general-stats.cvs'
-    file_create().save_file(file_name, avg_rating(main_dict))
-    file_create().save_file(file_name, best_comment(main_dict), 'a')
-    file_create().save_file(file_name, nearest_review(main_dict), 'a')
-    file_create().save_file(file_name, bad_comment(main_dict), 'a')
-    file_create().save_file(file_name, nonanalys_data(main_dict, analyzed_data), 'a')
+    print(avg_rating(main_dict))
+    print(len(avg_rating(main_dict)))
+    # file_name = 'general-stats.cvs'
+    # file_create().save_file(file_name, avg_rating(main_dict))
+    # file_create().save_file(file_name, best_comment(main_dict), 'a')
+    # file_create().save_file(file_name, nearest_review(main_dict), 'a')
+    # file_create().save_file(file_name, bad_comment(main_dict), 'a')
+    # file_create().save_file(file_name, nonanalys_data(main_dict, analyzed_data), 'a')
 
 
 
