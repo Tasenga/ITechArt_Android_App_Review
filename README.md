@@ -15,6 +15,10 @@ This app gives following results after running py-files:
 Before start you need to get database from http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Apps_for_Android_5.json.gz and save it to 'source' folder.
 To get start you need to run corresponding file (see above).
 
+To configure local git hooks you need:
+  - to save all files from directory './git.hooks' folder to directory './.git/hooks/';
+  - to input command 'chmod +x <file_name>' per file in git.bush terminale in root directory.
+
 ### Prerequisites
 
 To running application is used:
