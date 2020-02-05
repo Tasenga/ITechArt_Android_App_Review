@@ -134,3 +134,4 @@ resulting data/
 # Source
 *.json
 *.gz
+*.csv
