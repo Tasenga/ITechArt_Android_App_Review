@@ -1,9 +1,11 @@
 from source import get_data
 from operator import itemgetter
-from document_creation import file_create
+from itertools import groupby
+from document_creation import save_file
+from collections import Counter
 
 
-def avg_rating(main_dict, voters=False):
+def avg_rating(main_dict):
     '''function returns an average rating (overall) of each application (asin)
 
     1.1. Task_1.py: to create file general-stats.cvs containing information about
@@ -13,12 +15,8 @@ def avg_rating(main_dict, voters=False):
     for item in main_dict.values():
         overall, count = asins_value.get(item['asin'], [0, 0])
         asins_value[item['asin']] = [overall + item['overall'], count + 1]
-    if not voters:
-        avg_overall = [[key, str(round(value[0] / value[1], 2)).replace('.', ',')]
-                       for key, value in asins_value.items()]
-    else:
-        avg_overall = [[key, str(round(value[0] / value[1], 2)).replace('.', ','), value[1]]
-                       for key, value in asins_value.items()]
+    avg_overall = [[key, '{}'.format(round(value[0] / value[1], 2)).replace('.', ','), value[1]]
+                   for key, value in asins_value.items()]
     return avg_overall
 
 def best_comment(main_dict):
@@ -44,58 +42,43 @@ def nearest_reviews(main_dict):
     the length of both messages which create this interval;
     '''
 
-    def dict_timereviews_of_user(main_dict):
-        '''function returns the dictionary following view
-        all_timereview = {
-                            reviewerName: {IDreview: unixReviewTime,
-                                            IDreview: unixReviewTime,
-                                                ...},
-                            reviewerName: {IDreview: unixReviewTime,
-                                            IDreview: unixReviewTime,
-                                                ...}
-                        ...}'''
-        all_timereview = {}
-        for key, value in main_dict.items():
-            if 'reviewerName' in value.keys() and 'unixReviewTime' in value.keys() \
-                    and value['reviewerName'] != 'Amazon Customer':
-                try:
-                    all_timereview[value['reviewerName']].setdefault(key, value['unixReviewTime'])
-                except:
-                    all_timereview.setdefault(value['reviewerName'], {key: value['unixReviewTime']})
-        return all_timereview
+    analyzed_data = sorted(dict(filter(lambda review: 'reviewerName' in review[1] and 'unixReviewTime' in review[1]
+                                    and review[1]['reviewerName'] != 'Amazon Customer', main_dict.items())).values(),
+                                    key=lambda review: review['reviewerName'])
 
-    def deltatime(all_timereview=dict_timereviews_of_user(main_dict)):
-        '''function returns the time between nearest user's reviews like following list 'deltatime':
-            [[ IDreview_1, IDreview_2, time_between_reviews], [IDreview_n, IDreview_m, time_between_reviews]]'''
+    unix_sorted_reviews_by_names = {
+        name: sorted(reviews, key=lambda review: review['unixReviewTime'])
+        for name, reviews
+        in groupby((row for row in analyzed_data), key=lambda review: review['reviewerName'])
+    }
 
-        # argument sorted_all_timereview returns the lists consists of all reviews of every user,
-        # who sent more than one review, in ascending order
-        # [[(IDreview: unixReviewTime), (IDreview: unixReviewTime), ..., (IDreview: unixReviewTime)], [...],
-        # [...], [(IDreview: unixReviewTime), (IDreview: unixReviewTime), ..., (IDreview: unixReviewTime)]]
-        sorted_all_timereview = [sorted(item.items(), key=itemgetter(1))
-                                 for item in all_timereview.values() if len(item) > 1]
+    unix_max_diff_per_name = {
+        name: reviews[-1]['unixReviewTime'] - reviews[0]['unixReviewTime']
+        for name, reviews
+        in unix_sorted_reviews_by_names.items()
+        if len(reviews) > 1
+    }
 
-        # 'deltatime'=[[IDreview_1, IDreview_2, time_between_reviews], [IDreview_n, IDreview_m, time_between_reviews]]
-        deltatime = [[item[int(i-1)][0], item[i][0], item[i][1] - item[int(i-1)][1]]
-                     for item in sorted_all_timereview for i in range(1, len(item))]
-        return deltatime
+    global count_analyzed_data
+    count_analyzed_data = len(analyzed_data)
 
-    nearest_reviews = min(
-                    list(filter(lambda comment: comment[2] != 0, deltatime())),
-                    key=lambda comment: comment[2])
+    deltatime_between_nearest_reviews = min(
+        dict(filter(lambda value: value[1] != 0, unix_max_diff_per_name.items())).values())
 
-    # argument 'analyzed_data' shows how much reviews were included in 'nearest_review' list
-    global analyzed_data
-    analyzed_data = len(set([(comment[0], comment[1])
-                             for comment in list(filter(lambda comment: comment[2] != 0, deltatime()))]))
+    len_first_comment_from_nearest = [len(unix_sorted_reviews_by_names[key][-1]['reviewText']) for key, value in
+                                      unix_max_diff_per_name.items() if value == deltatime_between_nearest_reviews]
+    len_second_comment_from_nearest = [len(unix_sorted_reviews_by_names[key][0]['reviewText']) for key, value in
+                                      unix_max_diff_per_name.items() if value == deltatime_between_nearest_reviews]
 
     comment = [
         ['The shortest interval between ratings of one user (among all users) '
             'and the length of both messages which create this interval:'],
-        ['interval = ', str(nearest_reviews[2]//60//60) + 'hour ' + str(nearest_reviews[2]//60%60)
-             + 'min '+ str(nearest_reviews[2]%60%60) + 'sec;'],
-        ['lenght comment_1:', len(main_dict[nearest_reviews[0]]['reviewText'])],
-        ['lenght comment_2:', len(main_dict[nearest_reviews[1]]['reviewText'])]
+        ['interval = ', '{} hour {} min {} sec;'.format(
+            deltatime_between_nearest_reviews // 60 // 60,
+            deltatime_between_nearest_reviews // 60 % 60,
+            deltatime_between_nearest_reviews % 60 % 60)],
+        ['lenght comment_1:', len_first_comment_from_nearest[0]],
+        ['lenght comment_2:', len_second_comment_from_nearest[0]]
     ]
     return comment
 
@@ -111,13 +94,13 @@ def bad_comment(main_dict):
     )
     comment = [
         ['The application which received the most useless message:'],
-        ['helpfulness:', str(bad_comment['helpful'][0]/bad_comment['helpful'][1]*100) + '%'],
+        ['helpfulness:', '{}%'.format(bad_comment['helpful'][0]/bad_comment['helpful'][1]*100)],
         ['asin:', bad_comment['asin']],
         ['reviewText:', bad_comment['reviewText']]
     ]
     return comment
 
-def nonanalys_data(main_dict, analyzed_data):
+def nonanalys_data(main_dict, count_analyzed_data):
     '''function returns the number of records that cannot be processed for every point above.
 
     1.5. Task_1.py: to create file general-stats.cvs containing information about
@@ -137,8 +120,8 @@ def nonanalys_data(main_dict, analyzed_data):
             count_unanalyzed_2 += 1
     comment.append([count_unanalyzed_2, ' - to get the application which received the most useless message'])
 
-    count_unanalyzed_3 = len(main_dict) - analyzed_data
-    comment.append([str(count_unanalyzed_3) + ' or ' + str(round(count_unanalyzed_3/len(main_dict) * 100)) + '% ',
+    count_unanalyzed_3 = len(main_dict) - count_analyzed_data
+    comment.append(['{} or {}%'.format(count_unanalyzed_3, round(count_unanalyzed_3/len(main_dict) * 100)),
                     ' - to get the shortest interval between ratings of one user (among all users) '
                     'and the length of both messages which create this interval;'])
 
@@ -146,20 +129,20 @@ def nonanalys_data(main_dict, analyzed_data):
     for item in main_dict.values():
         if item['helpful'][1] == 0:
             count_unanalyzed_4 += 1
-    comment.append([str(count_unanalyzed_4) + ' or ' + str(round(count_unanalyzed_4/len(main_dict) * 100)) + '% ',
+    comment.append(['{} or {}%'.format(count_unanalyzed_4, round(count_unanalyzed_4/len(main_dict) * 100)),
                     ' - to get the application which received the most useless message'])
     return comment
 
 
 if __name__ == "__main__":
     main_dict = get_data.open_gzip()
-    analyzed_data = []
+    count_analyzed_data = []
     file_name = 'general-stats.cvs'
-    file_create().save_file(file_name, avg_rating(main_dict))
-    file_create().save_file(file_name, best_comment(main_dict), 'a')
-    file_create().save_file(file_name, nearest_reviews(main_dict), 'a')
-    file_create().save_file(file_name, bad_comment(main_dict), 'a')
-    file_create().save_file(file_name, nonanalys_data(main_dict, analyzed_data), 'a')
+    save_file(file_name, [[value[0], value[1]] for value in avg_rating(main_dict)])
+    save_file(file_name, best_comment(main_dict), 'a')
+    save_file(file_name, nearest_reviews(main_dict), 'a')
+    save_file(file_name, bad_comment(main_dict), 'a')
+    save_file(file_name, nonanalys_data(main_dict, count_analyzed_data), 'a')
 
 
 
