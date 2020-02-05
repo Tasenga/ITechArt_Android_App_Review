@@ -1,5 +1,5 @@
 from source import get_data
-from document_creation import file_create
+from document_creation import save_file
 
 from Task_1 import avg_rating
 # '''function avg_rating returns an average rating of each application and number of voters
@@ -9,4 +9,4 @@ from Task_1 import avg_rating
 
 if __name__ == "__main__":
     main_dict = get_data.open_gzip()
-    file_create().save_file('apps-stats.cvs', avg_rating(main_dict, voters=True))
+    save_file('apps-stats.cvs', avg_rating(main_dict))
