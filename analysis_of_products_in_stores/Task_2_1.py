@@ -6,27 +6,59 @@ from operator import itemgetter
 
 
 def get_data(filename):
-    '''function return a dictionary from the datafile'''
+    '''function returns a dictionary from the datafile'''
 
     ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
     with open(os.path.join(ROOT_DIR, filename)) as file:
         reader = csv.reader(file)
         main_dict = [{'ITEM_ID': row[0], 'STORE_ID': row[1], 'PRICE': row[2], 'APPROVED_BY': row[3]} for row in reader]
+        del main_dict[0]
     return main_dict
 
 def count_unique_values(main_dict, field):
-    '''function return a number of unique values for a field which was given like function's parameter'''
+    '''function returns the number of unique values for a field which was given like function's parameter'''
+
     result = len(set([item[field] for item in main_dict]))
-    # result = len([key for key, item in groupby(main_dict, key=lambda position: position[field])])
     return result
 
 def get_user_by_approves(main_dict):
-    '''function return a user name who approved the highest number of prices'''
-    result = [i for key, value in groupby(sorted(main_dict, key=lambda position: position['APPROVED_BY']), key=lambda position: position['APPROVED_BY']) for i in value]
+    '''function returns the user name who approved the highest number of prices'''
+
+    result = max(
+        (
+            (key, len(list(value)))
+            for key, value
+            in groupby(sorted(main_dict, key=lambda position: position['APPROVED_BY']),
+                       key=lambda position: position['APPROVED_BY'])
+        ),
+        key=lambda x: x[1]
+    )
     return result
 
-#                 - the user who approved the highest number of prices;
-#                 - the number of products sold in each store;
+def get_products_in_stores(main_dict):
+    '''function returns the number of products sold in each store'''
+
+    result = {
+        STORE_ID: len((position['PRICE'] for position in positions))
+        for STORE_ID, positions
+        in groupby(
+            sorted(main_dict, key=lambda position: position['STORE_ID']),
+            key=lambda position: position['STORE_ID'])
+    }
+    return result
+
+def get_avg_cost_per_products(main_dict):
+    '''function returns the average cost of each product'''
+
+    result = {
+        ITEM_ID: len(set(position['ITEM_ID'] for position in positions))
+        for ITEM_ID, positions
+        in groupby(
+            sorted(main_dict, key=lambda position: position['ITEM_ID']),
+            key=lambda position: position['ITEM_ID'])
+    }
+    return result
+
 #                 - the average cost of each product;
 #                 - shops which selling the most expensive and cheapest product (indicating the product and its price).
 
@@ -34,5 +66,8 @@ def get_user_by_approves(main_dict):
 if __name__ == "__main__":
     main_dict = get_data('prices.csv')
     count_unique_values(main_dict, 'STORE_ID')
+    count_unique_values(main_dict, 'ITEM_ID')
+    # print(count_unique_values(main_dict, 'STORE_ID'))
     get_user_by_approves(main_dict)
     print(get_user_by_approves(main_dict))
+    print(get_products_in_stores(main_dict))
