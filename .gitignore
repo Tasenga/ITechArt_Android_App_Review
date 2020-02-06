@@ -133,5 +133,10 @@ resulting data/
 
 # Source
 *.json
+<<<<<<< HEAD
 *.gz
 *.csv
+=======
+*.csv
+*.gz
+>>>>>>> development

@@ -1,5 +1,7 @@
 #!/bin/sh
 
+popen('chmod +x commit_msg', shell=True, stdout=PIPE)
+
 while read line; do
     message="${message}${line}"
 done < ${1}

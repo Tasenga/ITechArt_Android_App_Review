@@ -5,6 +5,8 @@ import sys
 from subprocess import Popen, PIPE
 import py_compile
 
+Popen('chmod +x pre-push', shell=True, stdout=PIPE)
+
 BASE_DIR = os.getcwd()
 code_result = 0
 
