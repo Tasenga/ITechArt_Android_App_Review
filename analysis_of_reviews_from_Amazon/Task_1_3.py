@@ -1,4 +1,4 @@
-from source import get_data
+from source.get_data import get_data
 import re
 from document_creation import save_file
 from operator import itemgetter
@@ -32,7 +32,7 @@ def popular_word_list(words_list):
 
 
 if __name__ == "__main__":
-    main_dict = get_data.open_gzip()
+    main_dict = get_data('Apps_for_Android_5.json')
     words_in_positive_comments = popular_word_list(split_text_up(get_text(main_dict, range(4, 6))))
     save_file('words-stats1.cvs',
                             sorted(words_in_positive_comments.items(), key=itemgetter(1), reverse=True))
