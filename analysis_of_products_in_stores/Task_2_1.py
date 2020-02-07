@@ -39,7 +39,7 @@ def get_products_in_stores(main_dict):
     '''function returns the number of products sold in each store'''
 
     result = {
-        STORE_ID: len((position['PRICE'] for position in positions))
+        STORE_ID: len(set(position['ITEM_ID'] for position in positions))
         for STORE_ID, positions
         in groupby(
             sorted(main_dict, key=lambda position: position['STORE_ID']),
@@ -50,24 +50,46 @@ def get_products_in_stores(main_dict):
 def get_avg_cost_per_products(main_dict):
     '''function returns the average cost of each product'''
 
+    def count_avg(positions):
+        '''function returns the average cost of the product'''
+        price = 0
+        count = 0
+        for position in positions:
+            price += float(position['PRICE'])
+            count += 1
+        return round(price / count, 2)
+
     result = {
-        ITEM_ID: len(set(position['ITEM_ID'] for position in positions))
+        ITEM_ID: count_avg(positions)
         for ITEM_ID, positions
         in groupby(
             sorted(main_dict, key=lambda position: position['ITEM_ID']),
             key=lambda position: position['ITEM_ID'])
+
     }
     return result
 
-#                 - the average cost of each product;
-#                 - shops which selling the most expensive and cheapest product (indicating the product and its price).
+def get_exp_and_chp_product(main_dict):
+    '''function returns the shops which selling the most expensive
+    and cheapest product (indicating the product and its price).'''
+
+    result = [max(item[''])
+        for item
+        in main_dict
+    ]
+
+    return result
+
+
+
 
 
 if __name__ == "__main__":
     main_dict = get_data('prices.csv')
     count_unique_values(main_dict, 'STORE_ID')
     count_unique_values(main_dict, 'ITEM_ID')
-    # print(count_unique_values(main_dict, 'STORE_ID'))
-    get_user_by_approves(main_dict)
+    print(count_unique_values(main_dict, 'STORE_ID'))
+    print(count_unique_values(main_dict, 'ITEM_ID'))
     print(get_user_by_approves(main_dict))
     print(get_products_in_stores(main_dict))
+    print(get_avg_cost_per_products(main_dict))
