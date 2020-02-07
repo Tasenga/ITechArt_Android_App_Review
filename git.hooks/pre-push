@@ -5,7 +5,8 @@ import sys
 from subprocess import Popen, PIPE
 import py_compile
 
-BASE_DIR = os.getcwd()
+BASE_DIR, hooks_folder = os.path.split(os.path.dirname(os.path.abspath(__file__)))
+
 code_result = 0
 
 # pushing of non-compile projects restriction.
