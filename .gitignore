@@ -134,3 +134,4 @@ resulting data/
 # Source
 *.json
 *.gz
+/analysis_of_products_in_stores/prices.csv
