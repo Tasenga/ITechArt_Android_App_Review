@@ -12,7 +12,7 @@ In 'analysis of reviews from Amazon' module:
 3) Task_3.py: to create file words-stats1.cvs и words-stats2.cvs containing information about the most popular words from positive and negative messages.
 
 In 'analysis of products in stores' module:
-1) Task_1.py to create file common-info.cvs containing information about:
+1) Task_2.py to create file L8_result.csv containing information about:
                 - number of unique products and stores;
                 - the user who approved the highest number of prices;
                 - the number of products sold in each store;
