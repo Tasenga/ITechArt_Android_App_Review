@@ -57,10 +57,16 @@ def nearest_reviews(main_dict):
     )
 
 
-    number_of_single_comments = len(dict(filter(lambda review: review[1][0] == 'single_review', unix_diff_per_name.items())))
-    potential_bot = set([reviewerID for reviewerID in dict(filter(lambda review: review[1][0] == 0, unix_diff_per_name.items())).keys()])
-    number_of_bot_comments = sum([len(list(reviews)) for reviewID, reviews in groupby(sorted(main_dict, key=lambda review: review['reviewerID']),
-                   key=lambda review: review['reviewerID']) if reviewID in potential_bot])
+    number_of_single_comments = len(dict(filter(
+        lambda review: review[1][0] == 'single_review', unix_diff_per_name.items())))
+
+    potential_bot = set([reviewerID for reviewerID
+                         in dict(filter(lambda review: review[1][0] == 0, unix_diff_per_name.items())).keys()])
+
+    number_of_bot_comments = sum([len(list(reviews))
+                                  for reviewID, reviews
+                                  in groupby(sorted(main_dict, key=lambda review: review['reviewerID']),
+                                             key=lambda review: review['reviewerID']) if reviewID in potential_bot])
     number_unanalyzed_reviews = number_of_single_comments + number_of_bot_comments
 
     comment = [
