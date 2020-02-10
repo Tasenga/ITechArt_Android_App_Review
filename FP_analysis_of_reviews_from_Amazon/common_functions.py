@@ -1,4 +1,4 @@
-from common_functions.work_with_document import get_data_from_json
+from common_module.work_with_document import get_data_from_json
 from time import time
 import concurrent.futures
 from multiprocessing import Pool
@@ -13,15 +13,11 @@ def asins_value(main_dict):
 
 def concurrent_future_get_data():
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        executor.map(
-            get_data_from_json,
-            [
-                (modulename, 'part1_Apps_for_Android_5.json'),
-                (modulename, 'part2_Apps_for_Android_5.json'),
-                (modulename, 'part3_Apps_for_Android_5.json'),
-                (modulename, 'part4_Apps_for_Android_5.json')
-            ]
-        )
+        data1 = executor.submit(get_data_from_json, modulename, 'part1_Apps_for_Android_5.json')
+        data2 = executor.submit(get_data_from_json, modulename, 'part2_Apps_for_Android_5.json')
+        data3 = executor.submit(get_data_from_json, modulename, 'part3_Apps_for_Android_5.json')
+        data4 = executor.submit(get_data_from_json, modulename, 'part4_Apps_for_Android_5.json')
+        return data1.result(), data2.result(), data3.result(), data4.result()
 
 def concurrent_future_asins_value():
     with concurrent.futures.ProcessPoolExecutor() as executor:
@@ -29,7 +25,7 @@ def concurrent_future_asins_value():
 
 def main_multiprocessing():
     with Pool(processes=4) as pool:
-        pool.map(asins_value, [data1, data2])
+        pool.map(asins_value, [data1, data2, data3, data4])
 
 
 if __name__ == '__main__':
@@ -41,26 +37,28 @@ if __name__ == '__main__':
     data3 = get_data_from_json(modulename, 'part3_Apps_for_Android_5.json')
     data4 = get_data_from_json(modulename, 'part4_Apps_for_Android_5.json')
     toc = time()
-    print(toc - tic)
+    print('sync get_data', toc - tic)
 
     tic = time()
-    concurrent_future_get_data()
+    data1, data2, data3, data4 = concurrent_future_get_data()
     toc = time()
-    print(toc - tic)
+    print('async get_data', toc - tic)
 
     tic = time()
     asins_value(data1)
     asins_value(data2)
+    asins_value(data3)
+    asins_value(data4)
     toc = time()
-    print(toc - tic)
+    print('sync asins_value', toc - tic)
 
     tic = time()
     concurrent_future_asins_value()
     toc = time()
-    print(toc - tic)
+    print('async asins_value', toc - tic)
 
     tic = time()
     main_multiprocessing()
     toc = time()
-    print(toc - tic)
+    print('async asins_value multiprocessing', toc - tic)
 

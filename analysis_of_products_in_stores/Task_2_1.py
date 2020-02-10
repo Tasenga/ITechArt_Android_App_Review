@@ -1,7 +1,7 @@
 from os.path import dirname, abspath, join
 import csv
 from itertools import groupby
-from common_functions.work_with_document import save_file
+from common_module.work_with_document import save_file
 
 def get_data(filename):
     """function returns a dictionary from the datafile"""
