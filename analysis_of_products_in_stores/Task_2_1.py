@@ -9,7 +9,7 @@ def get_data(filename):
     with open(join(dirname(abspath(__file__)), filename)) as file:
         reader = csv.reader(file)
         next(reader)
-        main_data = [
+        return [
             {
                 "ITEM_ID": row[0],
                 "STORE_ID": row[1],
@@ -18,22 +18,15 @@ def get_data(filename):
             }
             for row in reader
         ]
-        return main_data
 
 def group_dict(dict, field):
     """function returns a grouped dictionary"""
     sorted_dict = sorted(dict, key=lambda position: position[field])
     grouped_dict = {
         key: [group for group in groups]
-        for key, groups
-        in groupby(sorted_dict, key=lambda position: position[field])
+        for key, groups in groupby(sorted_dict, key=lambda position: position[field])
     }
     return grouped_dict
-
-def count_unique_values(dict):
-    """function returns the number of unique values for a field which was given like function's parameter"""
-    count_unique_values = len(dict)
-    return count_unique_values
 
 def get_user_by_approves(dict):
     """function returns the user name who approved the highest number of prices"""
@@ -67,7 +60,7 @@ def get_exp_and_chp_products(main_data):
     """function returns the shops which selling the most expensive
     and cheapest product (indicating the product and its price)."""
 
-    sorted_main_dict = sorted(main_data, key=lambda position: position['PRICE'])
+    sorted_main_dict = sorted(main_data, key=lambda position: position["PRICE"])
     exp_product = [
         sorted_main_dict[-1]["STORE_ID"],
         sorted_main_dict[-1]["ITEM_ID"],
@@ -83,9 +76,9 @@ def get_exp_and_chp_products(main_data):
 if __name__ == "__main__":
     main_data = get_data("prices.csv")
 
-    print('Enter path to directory to save results')
+    print("Enter path to directory to save results")
     user_path = input()
-    if user_path == '':
+    if user_path == "":
         path = dirname(abspath(__file__))
     else:
         path = user_path
@@ -96,10 +89,10 @@ if __name__ == "__main__":
 
     filename = "L8_result.csv"
 
-    uniq_store_comment = [["The number of unique STORE:", count_unique_values(dict_by_STORE_ID)]]
+    uniq_store_comment = [["The number of unique STORE:", len(dict_by_STORE_ID)]]
     save_file(path, filename, uniq_store_comment)
 
-    uniq_item_comment = [["The number of unique ITEM:", count_unique_values(dict_by_ITEM_ID)]]
+    uniq_item_comment = [["The number of unique ITEM:", len(dict_by_ITEM_ID)]]
     save_file(path, filename, uniq_item_comment, "a")
 
     user_approved = get_user_by_approves(dict_by_APPROVED)
@@ -109,7 +102,7 @@ if __name__ == "__main__":
     ]
     save_file(path, filename, user_approved_comment, "a")
 
-    save_file(path, filename, [['the number of products sold in each store:']], "a")
+    save_file(path, filename, [["the number of products sold in each store:"]], "a")
 
     save_file(path, filename, get_products_in_stores(dict_by_STORE_ID).items(), "a")
 
