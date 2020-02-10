@@ -1,6 +1,7 @@
 # Amazon apps_for_Android
 
 This app gives following results after running py-files:
+In 'analysis of reviews from Amazon' module:
 1) Task_1.py: to create file general-stats.cvs containing information about:
               - average rating (overall) of each application (asin);
               - messages with the most “likes” from the entire data set and the application (asin) associated with it;
@@ -9,6 +10,14 @@ This app gives following results after running py-files:
               - the number of records that cannot be processed for every point above.
 2) Task_2.py: to create file apps-stats.cvs containing information about average rating (overall) of each application (asin) and number of voters.
 3) Task_3.py: to create file words-stats1.cvs и words-stats2.cvs containing information about the most popular words from positive and negative messages.
+
+In 'analysis of products in stores' module:
+1) Task_2.py to create file L8_result.csv containing information about:
+                - number of unique products and stores;
+                - the user who approved the highest number of prices;
+                - the number of products sold in each store;
+                - the average cost of each product;
+                - shops which selling the most expensive and cheapest product (indicating the product and its price).
 
 ## Getting Started
 
