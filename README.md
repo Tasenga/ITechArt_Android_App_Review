@@ -22,6 +22,7 @@ In 'analysis of products in stores' module:
 ## Getting Started
 
 Before start you need to get database from http://snap.stanford.edu/data/amazon/productGraph/categoryFiles/reviews_Apps_for_Android_5.json.gz and save it to 'source' folder and unpack.
+To separate database you need to run 'test.py' file.
 To get start you need to run corresponding file (see above).
 
 ### Prerequisites
