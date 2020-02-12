@@ -9,14 +9,13 @@ def get_data_from_json(modulename, filename, path=project_path):
     """function returns a list of dictionaries from the json datafile"""
     in_dir = Path(join(path, modulename, "source"))
     with Path(in_dir, filename).open() as file:
-        return [loads(row) for row in file]
+        return tuple(loads(row) for row in file)
 
 def get_data_from_csv(modulename, filename, path=project_path):
     """function returns a list of dictionaries from the csv datafile"""
     in_dir = Path(join(path, modulename, "source"))
     with Path(in_dir, filename).open() as file:
-        # reader = csv.reader(file)
-        return [row for row in file]
+        return tuple(row for row in file)
 
 def save_file(modulename, filename, data, mode="w", path=project_path):
     """function creates a file from the transferred data"""
@@ -36,19 +35,13 @@ def get_separeted_data_from_json(modulename, filename, path=project_path):
         end = 752973
         data1 = []
         data2 = []
-        data3 = []
-        data4 = []
         for row in file:
             if start in range(0, end // 4):
                 data1.append(loads(row))
-            if start in range(end // 4, end // 2):
+            else:
                 data2.append(loads(row))
-            if start in range(end // 2, (end - end // 4)):
-                data3.append(loads(row))
-            if start in range((end - end // 4), end + 1):
-                data4.append(loads(row))
             start += 1
-    return data1, data2, data3, data4
+    return data1, data2
 
 def create_source_data_from_json(data, modulename, filename, path=project_path):
     """function creates a json file from the json object"""
@@ -59,7 +52,7 @@ def create_source_data_from_json(data, modulename, filename, path=project_path):
             file.write("\n")
 
 if __name__ == "__main__":
-    data1, data2, data3, data4 = get_separeted_data_from_json(
+    data1, data2 = get_separeted_data_from_json(
         "FP_analysis_of_reviews_from_Amazon", "Apps_for_Android_5.json"
     )
     create_source_data_from_json(
@@ -67,10 +60,4 @@ if __name__ == "__main__":
     )
     create_source_data_from_json(
         data2, "FP_analysis_of_reviews_from_Amazon", "part2_Apps_for_Android_5.json"
-    )
-    create_source_data_from_json(
-        data3, "FP_analysis_of_reviews_from_Amazon", "part3_Apps_for_Android_5.json"
-    )
-    create_source_data_from_json(
-        data4, "FP_analysis_of_reviews_from_Amazon", "part4_Apps_for_Android_5.json"
     )
