@@ -9,14 +9,14 @@ def get_data_from_json(modulename, filename, path=project_path):
     """function returns a list of dictionaries from the json datafile"""
     in_dir = Path(join(path, modulename, "source"))
     with Path(in_dir, filename).open() as file:
-        return [loads(row) for row in file]
+        return tuple(map(loads, file))
 
 def get_data_from_csv(modulename, filename, path=project_path):
     """function returns a list of dictionaries from the csv datafile"""
     in_dir = Path(join(path, modulename, "source"))
     with Path(in_dir, filename).open() as file:
         # reader = csv.reader(file)
-        return [row for row in file]
+        return tuple(row for row in file)
 
 def save_file(modulename, filename, data, mode="w", path=project_path):
     """function creates a file from the transferred data"""
