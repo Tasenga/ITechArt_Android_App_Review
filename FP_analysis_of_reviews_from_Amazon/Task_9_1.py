@@ -1,3 +1,5 @@
+from os import walk
+from os.path import dirname, abspath, join
 from common_module.work_with_document import get_data_from_json, save_file
 from concurrent.futures import ProcessPoolExecutor
 from common_functions import get_apps_scores_parallel
@@ -7,7 +9,7 @@ from nearest_review import (
     get_unix_diff_per_name,
     get_nearest_review,
 )
-from time import time
+
 
 def best_comment(data):
     """function returns the messages with the most “likes” and the application (asin) associated with it
@@ -67,12 +69,21 @@ def nonanalys_data(data):
     )
 
 if __name__ == "__main__":
+
+    documents = []
+    for root, dir, files in walk(join(dirname(abspath(__file__)), "source", "data")):
+        for name in files:
+            documents.append(join(root, name))
+
+    data = []
+    with ProcessPoolExecutor() as executor:
+        for part_of_data in executor.map(get_data_from_json, documents):
+            data.extend(part_of_data)
+
     modulename = "FP_analysis_of_reviews_from_Amazon"
-    data1 = get_data_from_json(modulename, "part1_Apps_for_Android_5.json")
-    data2 = get_data_from_json(modulename, "part2_Apps_for_Android_5.json")
     filename = "general-stats.cvs"
 
-    apps_scores = get_apps_scores_parallel(data1, data2)
+    apps_scores = get_apps_scores_parallel(data)
     save_file(
         modulename,
         filename,
@@ -80,7 +91,7 @@ if __name__ == "__main__":
     )
 
     with ProcessPoolExecutor() as executor:
-        best_review = best_comment(tuple(executor.map(best_comment, (data1, data2))))
+        best_review = best_comment(tuple(executor.map(best_comment, (data))))
     comment_for_best_review = [
         ["Messages with the most “likes” from the entire data set and the application (asin) associated with it:"],
         ["like:", best_review["helpful"][0]],
@@ -89,12 +100,8 @@ if __name__ == "__main__":
     ]
     save_file(modulename, filename, comment_for_best_review, "a")
 
-    sorted_processing_data, all_number_of_bot_comments = get_processing_data_parallel(
-        data1, data2
-    )
-    analyzed_data, potential_bots, number_of_bot_comments = process_data(
-        sorted_processing_data
-    )
+    sorted_processing_data, all_number_of_bot_comments = get_processing_data_parallel(data)
+    analyzed_data, potential_bots, number_of_bot_comments = process_data(sorted_processing_data)
     unix_diff_per_name = get_unix_diff_per_name(analyzed_data)
     nearest_comments = get_nearest_review(unix_diff_per_name)
     comment_for_nearest_review = [

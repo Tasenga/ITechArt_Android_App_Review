@@ -5,10 +5,9 @@ from json import loads, dump
 
 project_path, folder = split(dirname(abspath(__file__)))
 
-def get_data_from_json(modulename, filename, path=project_path):
+def get_data_from_json(file):
     """function returns a list of dictionaries from the json datafile"""
-    in_dir = Path(join(path, modulename, "source"))
-    with Path(in_dir, filename).open() as file:
+    with Path(file).open() as file:
         return tuple(loads(row) for row in file)
 
 def get_data_from_csv(modulename, filename, path=project_path):
@@ -29,7 +28,7 @@ def save_file(modulename, filename, data, mode="w", path=project_path):
 
 def get_separeted_data_from_json(modulename, filename, path=project_path):
     """function returns dictionaries from the json datafile"""
-    in_dir = Path(join(path, modulename, "source"))
+    in_dir = Path(join(path, modulename, "source", "archive"))
     with Path(in_dir, filename).open() as file:
         start = 0
         end = 752973
@@ -45,7 +44,7 @@ def get_separeted_data_from_json(modulename, filename, path=project_path):
 
 def create_source_data_from_json(data, modulename, filename, path=project_path):
     """function creates a json file from the json object"""
-    out_dir = Path(join(path, modulename, "source"))
+    out_dir = Path(join(path, modulename, "source", "data"))
     with Path(out_dir, filename).open(mode="w") as file:
         for row in data:
             dump(row, file)

@@ -1,3 +1,5 @@
+from os import walk
+from os.path import dirname, abspath, join
 from common_module.work_with_document import get_data_from_json, save_file
 import re
 from collections import Counter
@@ -66,22 +68,29 @@ def get_lists_of_popular_word_parallel(*args):
 
 
 if __name__ == "__main__":
-    modulename = "FP_analysis_of_reviews_from_Amazon"
-    data1 = get_data_from_json(modulename, "part1_Apps_for_Android_5.json")
-    data2 = get_data_from_json(modulename, "part2_Apps_for_Android_5.json")
 
-    result_list_for_positive_comment, result_list_for_negative_comment = get_lists_of_popular_word_parallel(data1, data2)
+    documents = []
+    for root, dir, files in walk(join(dirname(abspath(__file__)), "source", "data")):
+        for name in files:
+            documents.append(join(root, name))
+
+    data = []
+    with ProcessPoolExecutor() as executor:
+        for part_of_data in executor.map(get_data_from_json, documents):
+            data.extend(part_of_data)
+
+    result_list_for_positive_comment, result_list_for_negative_comment = get_lists_of_popular_word_parallel(data)
 
     save_file(
-        modulename,
+        "FP_analysis_of_reviews_from_Amazon",
         "words-stats1.cvs",
         sorted(
             result_list_for_positive_comment.items(), key=itemgetter(1), reverse=True
         ),
     )
     save_file(
-        modulename,
-        "words-stats1.cvs",
+        "FP_analysis_of_reviews_from_Amazon",
+        "words-stats2.cvs",
         sorted(
             result_list_for_negative_comment.items(), key=itemgetter(1), reverse=True
         ),
