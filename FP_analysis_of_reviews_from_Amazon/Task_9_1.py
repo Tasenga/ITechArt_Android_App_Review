@@ -58,7 +58,7 @@ def nonanalys_data(data):
     )
 
     count_unanalyzed_bad_comment = len(
-        dict(filter(lambda review: review[0]["helpful"][1] == 0, data))
+        list(filter(lambda review: review["helpful"][1] == 0, data))
     )
     return (
         count_unanalyzed_avg_score,
@@ -95,7 +95,6 @@ if __name__ == "__main__":
     analyzed_data, potential_bots, number_of_bot_comments = process_data(
         sorted_processing_data
     )
-    all_number_of_bot_comments += number_of_bot_comments
     unix_diff_per_name = get_unix_diff_per_name(analyzed_data)
     nearest_comments = get_nearest_review(unix_diff_per_name)
     comment_for_nearest_review = [
