@@ -2,11 +2,12 @@ from source.get_data import get_data
 import re
 from document_creation import save_file
 from operator import itemgetter
+from time import time
 
 
 def get_text(main_dict, overall_values):
     '''function gets a text and returns list of reviews in depends on overall values'''
-    message_list = [item['reviewText'] for item in main_dict.values()
+    message_list = [item['reviewText'] for item in main_dict
                     if 'overall' in item.keys() and item['overall'] in overall_values]
     return message_list
 
@@ -33,6 +34,7 @@ def popular_word_list(words_list):
 
 if __name__ == "__main__":
     main_dict = get_data('Apps_for_Android_5.json')
+
     words_in_positive_comments = popular_word_list(split_text_up(get_text(main_dict, range(4, 6))))
     save_file('words-stats1.cvs',
                             sorted(words_in_positive_comments.items(), key=itemgetter(1), reverse=True))
