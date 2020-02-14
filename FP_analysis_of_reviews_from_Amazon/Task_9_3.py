@@ -1,10 +1,11 @@
-from os import walk
-from os.path import dirname, abspath, join
+from os.path import dirname, abspath
+from pathlib import Path
 from common_module.work_with_document import get_data_from_json, save_file
 import re
 from collections import Counter
 from operator import itemgetter
 from concurrent.futures import ProcessPoolExecutor
+from common_functions import run_func_parallel
 
 
 def split_text_up(text):
@@ -16,8 +17,7 @@ def split_text_up(text):
 
 def popular_word_list(words_list):
     """function returns the words from word_list with number of using per word"""
-    number_of_words = Counter(list(sorted(filter(lambda word: word != "", words_list))))
-    return number_of_words
+    return Counter(list(sorted(filter(lambda word: word != "", words_list))))
 
 def get_list_of_popular_word(data):
     """common function which returns the dictionaries with words and number of using per word
@@ -53,45 +53,38 @@ def get_list_of_popular_word(data):
 
     return number_of_words_in_positive_comment, number_of_words_in_negative_comment
 
-def get_lists_of_popular_word_parallel(*args):
-    result_list_for_positive_comment = {}
-    result_list_for_negative_comment = {}
-    with ProcessPoolExecutor() as executor:
-        for result in executor.map(get_list_of_popular_word, args):
-            for word, count_word in dict(result[0]).items():
-                count = result_list_for_positive_comment.get(word, 0)
-                result_list_for_positive_comment[word] = count + count_word
-            for word, count_word in dict(result[1]).items():
-                count = result_list_for_negative_comment.get(word, 0)
-                result_list_for_negative_comment[word] = count + count_word
-        return result_list_for_positive_comment, result_list_for_negative_comment
+def create_list_word(list_of_word={}):
+    count = list_of_word.get(word, 0)
+    list_of_word[word] = count + count_word
+    return list_of_word
+
 
 
 if __name__ == "__main__":
 
-    documents = []
-    for root, dir, files in walk(join(dirname(abspath(__file__)), "source", "data")):
-        for name in files:
-            documents.append(join(root, name))
-
-    data = []
+    chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
     with ProcessPoolExecutor() as executor:
-        for part_of_data in executor.map(get_data_from_json, documents):
-            data.extend(part_of_data)
+        data = [it for it in executor.map(get_data_from_json, chunks)]
 
-    result_list_for_positive_comment, result_list_for_negative_comment = get_lists_of_popular_word_parallel(data)
+    list_for_positive_comment = {}
+    list_for_negative_comment = {}
+    for result in run_func_parallel(get_list_of_popular_word, data):
+        for word, count_word in dict(result[0]).items():
+            list_for_positive_comment = create_list_word(list_for_positive_comment)
+        for word, count_word in dict(result[1]).items():
+            list_for_negative_comment = create_list_word(list_for_negative_comment)
 
     save_file(
-        "FP_analysis_of_reviews_from_Amazon",
+        Path(dirname(abspath(__file__))),
         "words-stats1.cvs",
         sorted(
-            result_list_for_positive_comment.items(), key=itemgetter(1), reverse=True
+            list_for_positive_comment.items(), key=itemgetter(1), reverse=True
         ),
     )
     save_file(
-        "FP_analysis_of_reviews_from_Amazon",
+        Path(dirname(abspath(__file__))),
         "words-stats2.cvs",
         sorted(
-            result_list_for_negative_comment.items(), key=itemgetter(1), reverse=True
+            list_for_negative_comment.items(), key=itemgetter(1), reverse=True
         ),
     )

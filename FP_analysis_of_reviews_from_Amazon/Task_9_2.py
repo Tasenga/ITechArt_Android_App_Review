@@ -1,26 +1,21 @@
 from common_module.work_with_document import get_data_from_json, save_file
-from common_functions import get_apps_scores_parallel, AppScore
-from os import walk
-from os.path import dirname, abspath, join
+from common_functions import get_dict_of_apps_with_score, get_apps_scores, run_func_parallel, AppScore
+from pathlib import Path
+from os.path import dirname, abspath
 from concurrent.futures import ProcessPoolExecutor
 
 if __name__ == "__main__":
 
-    documents = []
-    for root, dir, files in walk(join(dirname(abspath(__file__)), "source", "data")):
-        for name in files:
-            documents.append(join(root, name))
-
-    data = []
+    chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
     with ProcessPoolExecutor() as executor:
-        for part_of_data in executor.map(get_data_from_json, documents):
-            data.extend(part_of_data)
+        data = [it for it in executor.map(get_data_from_json, chunks)]
 
-    apps_scores = get_apps_scores_parallel(data)
+    apps_scores = {}
+    for result in run_func_parallel(get_apps_scores, data):
+        apps_scores = get_dict_of_apps_with_score(result, apps_scores)
 
-    modulename = "FP_analysis_of_reviews_from_Amazon"
     save_file(
-        modulename,
+        Path(dirname(abspath(__file__))),
         "apps-stats.cvs",
         tuple(
             map(

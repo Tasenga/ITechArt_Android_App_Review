@@ -1,14 +1,9 @@
-from os import walk
-from os.path import dirname, abspath, join
+from pathlib import Path
+from os.path import dirname, abspath
 from common_module.work_with_document import get_data_from_json, save_file
 from concurrent.futures import ProcessPoolExecutor
-from common_functions import get_apps_scores_parallel
-from nearest_review import (
-    get_processing_data_parallel,
-    process_data,
-    get_unix_diff_per_name,
-    get_nearest_review,
-)
+from common_functions import *
+from nearest_review import main
 
 
 def best_comment(data):
@@ -17,8 +12,7 @@ def best_comment(data):
     1.2. Task_9_1.py: to create file general-stats.cvs containing information about
     messages with the most “likes” from the entire data set and the application (asin) associated with it;
     """
-    best_comment = max(data, key=lambda review: review["helpful"][0])
-    return best_comment
+    return max(data, key=lambda review: review["helpful"][0])
 
 def bad_comment(data):
     """function returns the application which received the most useless message
@@ -26,84 +20,64 @@ def bad_comment(data):
     1.3. Task_9_1: to create file general-stats.cvs containing information about
     the application which received the most useless message;
     """
-    bad_comment = min(
+    return min(
         list(filter(lambda review: review["helpful"][1] != 0, data)),
         key=lambda review: review["helpful"][0] / review["helpful"][1],
     )
-    return bad_comment
 
-def nonanalys_data(data):
+
+def nonanalys_data(reviews):
     """function returns the number of records that cannot be processed for every point above.
 
     1.5. Task_9_1: to create file general-stats.cvs containing information about
     the number of records that cannot be processed for every point above.
     """
-    count_unanalyzed_avg_score = len(
-        dict(
-            filter(
-                lambda review: "asin" not in review.keys()
-                or "overall" not in review.keys(),
-                data,
-            )
+    def count_unanalyzed(*required_keys):
+        return len(
+            [review for review in reviews
+             if [all([key not in review for key in required_keys])]]
         )
-    )
 
-    count_unanalyzed_best_comment = len(
-        dict(
-            filter(
-                lambda review: "asin" not in review.keys()
-                or "helpful" not in review.keys()
-                or "reviewText" not in review.keys(),
-                data,
-            )
-        )
-    )
-
-    count_unanalyzed_bad_comment = len(
-        list(filter(lambda review: review["helpful"][1] == 0, data))
-    )
     return (
-        count_unanalyzed_avg_score,
-        count_unanalyzed_best_comment,
-        count_unanalyzed_bad_comment,
+        count_unanalyzed("asin", "overall"),  # avg score
+        count_unanalyzed("asin", "helpful", "reviewText"),  # best comment,
+        len(list(filter(lambda it: it["helpful"][1] == 0, reviews))),  # bad comment
     )
+
 
 if __name__ == "__main__":
 
-    documents = []
-    for root, dir, files in walk(join(dirname(abspath(__file__)), "source", "data")):
-        for name in files:
-            documents.append(join(root, name))
-
-    data = []
-    with ProcessPoolExecutor() as executor:
-        for part_of_data in executor.map(get_data_from_json, documents):
-            data.extend(part_of_data)
-
-    modulename = "FP_analysis_of_reviews_from_Amazon"
+    chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
+    data = run_func_parallel(get_data_from_json, chunks)
     filename = "general-stats.cvs"
 
-    apps_scores = get_apps_scores_parallel(data)
+    apps_scores = {}
+    for result in run_func_parallel(get_apps_scores, data):
+        apps_scores = get_dict_of_apps_with_score(result, apps_scores)
+
     save_file(
-        modulename,
+        Path(dirname(abspath(__file__))),
         filename,
-        tuple(map(lambda app: (app.asin, app.average_score), apps_scores.values())),
+        tuple(
+            map(
+                lambda app: (app.asin, app.average_score, app.number_of_votes),
+                apps_scores.values(),
+            )
+        ),
     )
 
-    with ProcessPoolExecutor() as executor:
-        best_review = best_comment(tuple(executor.map(best_comment, (data))))
+
+    best_review = best_comment(run_func_parallel(best_comment, data))
     comment_for_best_review = [
         ["Messages with the most “likes” from the entire data set and the application (asin) associated with it:"],
         ["like:", best_review["helpful"][0]],
         ["asin:", best_review["asin"]],
         ["reviewText:", best_review["reviewText"]],
     ]
-    save_file(modulename, filename, comment_for_best_review, "a")
+    save_file(Path(dirname(abspath(__file__))), filename, comment_for_best_review, "a")
 
-    sorted_processing_data, all_number_of_bot_comments = get_processing_data_parallel(data)
-    analyzed_data, potential_bots, number_of_bot_comments = process_data(sorted_processing_data)
-    unix_diff_per_name = get_unix_diff_per_name(analyzed_data)
-    nearest_comments = get_nearest_review(unix_diff_per_name)
+
+    nearest_comments, all_number_of_bot_comments = main(data)
     comment_for_nearest_review = [
         [
             "The shortest interval between ratings of one user (among all users) "
@@ -118,13 +92,12 @@ if __name__ == "__main__":
                 nearest_comments[1][0] % 60 % 60 % 24,
             ),
         ],
-        ["lenght comment_1:", len(nearest_comments[1][1])],
-        ["lenght comment_2:", len(nearest_comments[1][2])],
+        ["length comment_1:", len(nearest_comments[1][1])],
+        ["length comment_2:", len(nearest_comments[1][2])],
     ]
-    save_file(modulename, filename, comment_for_nearest_review, "a")
+    save_file(Path(dirname(abspath(__file__))), filename, comment_for_nearest_review, "a")
 
-    with ProcessPoolExecutor() as executor:
-        bad_review = bad_comment(tuple(executor.map(bad_comment, (data1, data2))))
+    bad_review = bad_comment(run_func_parallel(bad_comment, data))
     comment_for_bad_review = [
         ["The application which received the most useless message:"],
         [
@@ -134,7 +107,7 @@ if __name__ == "__main__":
         ["asin:", bad_review["asin"]],
         ["reviewText:", bad_review["reviewText"]],
     ]
-    save_file(modulename, filename, comment_for_bad_review, "a")
+    save_file(Path(dirname(abspath(__file__))), filename, comment_for_bad_review, "a")
 
     with ProcessPoolExecutor() as executor:
         common_count_unanalyzed_avg_score = 0
@@ -144,7 +117,7 @@ if __name__ == "__main__":
             count_unanalyzed_avg_score,
             count_unanalyzed_best_comment,
             count_unanalyzed_bad_comment,
-        ) in executor.map(nonanalys_data, (data1, data2)):
+        ) in executor.map(nonanalys_data, data):
             common_count_unanalyzed_avg_score += count_unanalyzed_avg_score
             common_count_unanalyzed_best_comment += count_unanalyzed_best_comment
             common_count_unanalyzed_bad_comment += count_unanalyzed_bad_comment
@@ -162,7 +135,7 @@ if __name__ == "__main__":
         [
             "{} or {}%".format(
                 all_number_of_bot_comments,
-                round(all_number_of_bot_comments / (len(data1) + len(data2)) * 100),
+                round(all_number_of_bot_comments / (sum(map(lambda it: len(it), data))) * 100),
             ),
             " - to get the shortest interval between ratings of one user (among all users) "
             "and the length of both messages which create this interval;",
@@ -172,11 +145,11 @@ if __name__ == "__main__":
                 common_count_unanalyzed_bad_comment,
                 round(
                     common_count_unanalyzed_bad_comment
-                    / (len(data1) + len(data2))
+                    / (sum(map(lambda it: len(it), data)))
                     * 100
                 ),
             ),
             " - to get the application which received the most useless message",
         ],
     ]
-    save_file(modulename, filename, comment_for_count_unanalyzed_data, "a")
+    save_file(Path(dirname(abspath(__file__))), filename, comment_for_count_unanalyzed_data, "a")

@@ -1,5 +1,6 @@
 from itertools import groupby
-from concurrent.futures import ProcessPoolExecutor
+from common_functions import run_func_parallel
+
 
 class ReviewTimeInfo:
     def __init__(self, time, text):
@@ -7,7 +8,7 @@ class ReviewTimeInfo:
         self.text = text
 
 def prepare_data(data):
-    sorted_data = {
+    return {
         RewiverID: sorted(
             [
                 ReviewTimeInfo(group["unixReviewTime"], group["reviewText"])
@@ -20,17 +21,15 @@ def prepare_data(data):
             key=lambda review: review["reviewerID"],
         )
     }
-    return sorted_data
 
 def count_deltatime(data):
-    min_deltatime = min(
+    return min(
         (data[i].time - data[i - 1].time, data[i].text, data[i - 1].text)
         for i in range(1, len(data))
     )
-    return min_deltatime
 
 def get_unix_diff_per_name(data):
-    unix_diff_per_name = tuple(
+    return tuple(
         map(
             lambda reviews: [reviews[0], count_deltatime(reviews[1])]
             if len(reviews[1]) > 1
@@ -38,13 +37,11 @@ def get_unix_diff_per_name(data):
             data.items(),
         )
     )
-    return unix_diff_per_name
 
 def get_potential_bots(data):
-    potential_bots = set(
+    return set(
         map(lambda comment: comment[0] if comment[1][0] == 0 else None, data)
     )
-    return potential_bots
 
 def filter_bot_review(data, potential_bots):
     analyzed_data = dict(
@@ -70,29 +67,28 @@ def process_data(data):
     return analyzed_data, potential_bots, number_of_bot_comments
 
 def get_nearest_review(data):
-    nearest_comments = min(
+    return min(
         list(filter(lambda review: review[1][1] != "single_review", data)),
         key=lambda review: review[1][0],
     )
-    return nearest_comments
 
-def get_processing_data_parallel(*args):
-    list_prepared_data = []
+
+def analize_bots_comments(data):
+
     all_potential_bots = []
     all_number_of_bot_comments = 0
     all_analyzed_data = {}
-    with ProcessPoolExecutor() as executor:
-        for prepared_data in executor.map(prepare_data, args):
-            list_prepared_data.append(prepared_data)
-    with ProcessPoolExecutor() as executor:
-        for analyzed_data, potential_bots, number_of_bot_comments in executor.map(
-            process_data, list_prepared_data
-        ):
+
+    for (analyzed_data,
+         potential_bots,
+         number_of_bot_comments) in run_func_parallel(process_data, run_func_parallel(prepare_data, data)):
             all_potential_bots += potential_bots
             all_number_of_bot_comments += number_of_bot_comments
             for reviewer, reviews in analyzed_data.items():
                 list_of_review = all_analyzed_data.setdefault(reviewer, [])
                 list_of_review.extend(reviews)
+
+    # analize_bots_comments_in_concatenated_data
     set_all_potential_bots = set(all_potential_bots)
     processing_data, additional_number_of_bot_comments = filter_bot_review(
         all_analyzed_data, set_all_potential_bots
@@ -103,3 +99,10 @@ def get_processing_data_parallel(*args):
         for reviewer, reviews in all_analyzed_data.items()
     }
     return sorted_processing_data, all_number_of_bot_comments
+
+def main(data):
+    sorted_processing_data, all_number_of_bot_comments = analize_bots_comments(data)
+    analyzed_data, potential_bots, number_of_bot_comments = process_data(sorted_processing_data)
+    unix_diff_per_name = get_unix_diff_per_name(analyzed_data)
+    nearest_comments = get_nearest_review(unix_diff_per_name)
+    return nearest_comments, all_number_of_bot_comments

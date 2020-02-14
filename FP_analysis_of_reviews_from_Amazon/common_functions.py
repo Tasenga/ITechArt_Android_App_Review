@@ -25,19 +25,20 @@ def get_apps_scores(data):
     }
     return part_of_apps_scores
 
-def get_apps_scores_parallel(*args):
-    """
-    function runs several processes to implement function 'get_asins_score' and to combine results this function.
-    Returns a dictionary where keys are asins, values are total score and number of votes per asin.
-    """
-    apps_scores = {}
+def run_func_parallel(func, data):
     with concurrent.futures.ProcessPoolExecutor() as executor:
-        for part_of_apps_scores in executor.map(get_apps_scores, args):
-            for asin, list_of_scores in part_of_apps_scores.items():
-                app_score_obj = apps_scores.setdefault(asin, AppScore(asin, 0, 0))
-                app_score_obj.total_score += sum(list_of_scores)
-                app_score_obj.number_of_votes += len(list_of_scores)
+        result = [it for it in executor.map(func, data)]
+    return result
+
+
+def get_dict_of_apps_with_score(data, apps_scores={}):
+    for asin, list_of_scores in data.items():
+        app_score_obj = apps_scores.setdefault(asin, AppScore(asin, 0, 0))
+        app_score_obj.total_score += sum(list_of_scores)
+        app_score_obj.number_of_votes += len(list_of_scores)
     return apps_scores
+
+
 
 # ANOTHER WAY
 #

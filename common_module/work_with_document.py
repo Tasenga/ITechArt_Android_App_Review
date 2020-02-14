@@ -8,7 +8,7 @@ project_path, folder = split(dirname(abspath(__file__)))
 def get_data_from_json(file):
     """function returns a list of dictionaries from the json datafile"""
     with Path(file).open() as file:
-        return tuple(loads(row) for row in file)
+        return [loads(row) for row in file]
 
 def get_data_from_csv(modulename, filename, path=project_path):
     """function returns a list of dictionaries from the csv datafile"""
@@ -16,9 +16,9 @@ def get_data_from_csv(modulename, filename, path=project_path):
     with Path(in_dir, filename).open() as file:
         return tuple(row for row in file)
 
-def save_file(modulename, filename, data, mode="w", path=project_path):
+def save_file(path, filename, data, mode="w"):
     """function creates a file from the transferred data"""
-    out_dir = Path(join(path, modulename, "resulting data"))
+    out_dir = Path(join(path, "resulting data"))
     out_dir.mkdir(parents=True, exist_ok=True)
     with Path(out_dir, filename).open(mode=mode, newline="") as csv_file:
         writer = csv.writer(csv_file, delimiter="\t")
