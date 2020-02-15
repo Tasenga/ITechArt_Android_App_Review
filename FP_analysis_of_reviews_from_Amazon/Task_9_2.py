@@ -7,8 +7,7 @@ from concurrent.futures import ProcessPoolExecutor
 if __name__ == "__main__":
 
     chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
-    with ProcessPoolExecutor() as executor:
-        data = [it for it in executor.map(get_data_from_json, chunks)]
+    data = run_func_parallel(get_data_from_json, chunks)
 
     apps_scores = {}
     for result in run_func_parallel(get_apps_scores, data):
@@ -24,17 +23,3 @@ if __name__ == "__main__":
             )
         ),
     )
-
-
-    # ANOTHER WAY (13.5sec)
-    # from common_functions import concatenate_apps_scores
-    # save_file(
-    #     modulename,
-    #     "apps-stats.cvs",
-    #     tuple(
-    #         map(
-    #             lambda app: (app.asin, app.average_score, app.number_of_votes),
-    #             concatenate_apps_scores(apps_scores),
-    #         )
-    #     ),
-    # )

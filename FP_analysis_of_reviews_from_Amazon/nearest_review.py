@@ -66,12 +66,6 @@ def process_data(data):
     analyzed_data, number_of_bot_comments = filter_bot_review(data, potential_bots)
     return analyzed_data, potential_bots, number_of_bot_comments
 
-def get_nearest_review(data):
-    return min(
-        list(filter(lambda review: review[1][1] != "single_review", data)),
-        key=lambda review: review[1][0],
-    )
-
 
 def analize_bots_comments(data):
 
@@ -100,9 +94,10 @@ def analize_bots_comments(data):
     }
     return sorted_processing_data, all_number_of_bot_comments
 
-def main(data):
+def get_nearest_reviews(data):
     sorted_processing_data, all_number_of_bot_comments = analize_bots_comments(data)
     analyzed_data, potential_bots, number_of_bot_comments = process_data(sorted_processing_data)
     unix_diff_per_name = get_unix_diff_per_name(analyzed_data)
-    nearest_comments = get_nearest_review(unix_diff_per_name)
-    return nearest_comments, all_number_of_bot_comments
+    nearest_reviews = min([review for review in unix_diff_per_name if review[1][1] != "single_review"],
+                          key=lambda review: review[1][0])
+    return nearest_reviews, all_number_of_bot_comments
