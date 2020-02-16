@@ -1,6 +1,11 @@
 from itertools import groupby
 from common_functions import run_func_parallel
 
+from pathlib import Path
+from os.path import dirname, abspath
+from common_module.work_with_document import get_data_from_json, save_file
+from common_functions import *
+
 
 class ReviewTimeInfo:
     def __init__(self, time, text):
@@ -44,16 +49,16 @@ def get_potential_bots(data):
     )
 
 def filter_bot_review(data, potential_bots):
-    analyzed_data = dict(
-        filter(lambda review: review[0] not in potential_bots, data.items())
-    )
+
+    analyzed_data = {
+        reviewerID: reviews
+        for reviewerID, reviews
+        in data.items()
+        if reviewerID not in potential_bots
+    }
+
     number_of_bot_comments = sum(
-        map(
-            lambda reviews: len(reviews),
-            dict(
-                filter(lambda review: review[0] in potential_bots, data.items())
-            ).values(),
-        )
+            [len(reviews) for reviewerID, reviews in data.items() if reviewerID in potential_bots]
     )
     return analyzed_data, number_of_bot_comments
 

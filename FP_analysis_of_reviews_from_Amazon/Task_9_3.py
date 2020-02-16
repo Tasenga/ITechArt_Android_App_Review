@@ -5,25 +5,23 @@ import re
 from collections import Counter
 from operator import itemgetter
 from itertools import groupby
+from itertools import chain
 from common_functions import run_func_parallel
 
 
-def split_text_up(text):
+def text_to_words(text):
     """function gets a text and returns list of words from this text"""
-    list_of_words = []
-    list(
-        map(
-            lambda review: list_of_words.extend(
-                re.split(r"\W+", review.replace("'", "_").lower())
-            ),
-            text
-        )
-    )
-    return list_of_words
+    return re.split(r"\W+", text.replace("'", "_").lower())
 
-def popular_word_list(words_list):
-    """function returns the words from word_list with number of using per word"""
-    return Counter(list(sorted(filter(lambda word: word != "", words_list))))
+def create_words_counter(comments):
+    return Counter(
+        [
+            word
+            for word
+            in chain.from_iterable([text_to_words(comment) for comment in comments])
+            if word != ""
+        ]
+    )
 
 def get_list_of_popular_word(data):
     """common function which returns the dictionaries with words and number of using per word
@@ -33,9 +31,7 @@ def get_list_of_popular_word(data):
     containing information about the most popular words from positive and negative messages.
     """
     comment_words_by_sentiment = {
-        sentiment: popular_word_list(
-            split_text_up([review["reviewText"] for review in reviews])
-        )
+        sentiment: create_words_counter([review["reviewText"] for review in reviews])
         for sentiment, reviews in groupby(
             sorted(
                 data, key=lambda review: review["overall"]
@@ -47,12 +43,13 @@ def get_list_of_popular_word(data):
         comment_words_by_sentiment[False]  # number of words in negative comment
     )
 
-def create_list_word(data, list_of_word={}):
-    for word, count_word in data.items():
-        count = list_of_word.get(word, 0)
-        list_of_word[word] = count + count_word
-    return list_of_word
-
+def analyze_popular_words_by_sentiment(data):
+    total_positive = Counter()
+    total_negative = Counter()
+    for positive, negative in run_func_parallel(get_list_of_popular_word, data):
+        total_positive += positive
+        total_negative += negative
+    return total_positive, total_negative
 
 
 if __name__ == "__main__":
@@ -60,11 +57,7 @@ if __name__ == "__main__":
     chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
     data = run_func_parallel(get_data_from_json, chunks)
 
-    list_for_positive_comment = {}
-    list_for_negative_comment = {}
-    for result in run_func_parallel(get_list_of_popular_word, data):
-        list_for_positive_comment = create_list_word(dict(result[0]), list_for_positive_comment)
-        list_for_negative_comment = create_list_word(dict(result[1]), list_for_negative_comment)
+    list_for_positive_comment, list_for_negative_comment = analyze_popular_words_by_sentiment(data)
 
     save_file(
         Path(dirname(abspath(__file__))),

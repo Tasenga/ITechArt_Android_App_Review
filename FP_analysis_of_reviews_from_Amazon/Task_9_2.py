@@ -9,17 +9,10 @@ if __name__ == "__main__":
     chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
     data = run_func_parallel(get_data_from_json, chunks)
 
-    apps_scores = {}
-    for result in run_func_parallel(get_apps_scores, data):
-        apps_scores = get_dict_of_apps_with_score(result, apps_scores)
+    apps_scores = get_dict_of_apps_with_score(data)
 
     save_file(
         Path(dirname(abspath(__file__))),
         "apps-stats.cvs",
-        tuple(
-            map(
-                lambda app: (app.asin, app.average_score, app.number_of_votes),
-                apps_scores.values(),
-            )
-        ),
+        [(app.asin, app.average_score, app.number_of_votes) for app in apps_scores.values()]
     )
