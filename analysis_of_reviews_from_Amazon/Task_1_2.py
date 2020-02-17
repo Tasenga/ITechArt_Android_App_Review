@@ -1,4 +1,4 @@
-from source import get_data
+from source.get_data import get_data
 from document_creation import save_file
 from common_functions import avg_rating
 
