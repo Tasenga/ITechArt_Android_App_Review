@@ -15,9 +15,9 @@ def get_data_from_csv(file):
     with Path(file).open() as file:
         return tuple(row for row in file)
 
-def save_file(path, filename, data, mode="w"):
+def save_file(file, data, mode="w"):
     """function creates a file from the transferred data"""
-    with Path(path, filename).open(mode=mode, newline="") as csv_file:
+    with Path(file).open(mode=mode, newline="") as csv_file:
         writer = csv.writer(csv_file, delimiter="\t")
         for line in data:
             writer.writerow(line)

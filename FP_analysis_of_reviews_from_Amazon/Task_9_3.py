@@ -58,22 +58,19 @@ if __name__ == "__main__":
     data = run_func_parallel(get_data_from_json, chunks)
 
     # path_to_save
-    Path(join(dirname(abspath(__file__)), "resulting data")).mkdir(parents=True, exist_ok=True)
-    path_to_save = Path(join(dirname(abspath(__file__)), "resulting data"))
+    Path(dirname(abspath(__file__)), "resulting data").mkdir(parents=True, exist_ok=True)
 
     list_for_positive_comment, list_for_negative_comment = analyze_popular_words_by_sentiment(data)
 
     save_file(
-        path_to_save,
-        "words-stats1.cvs",
+        Path(dirname(abspath(__file__)), "resulting data", "words-stats1.cvs"),
         sorted(
             list_for_positive_comment.items(), key=itemgetter(1), reverse=True
-        ),
+        )
     )
     save_file(
-        path_to_save,
-        "words-stats2.cvs",
+        Path(dirname(abspath(__file__)), "resulting data", "words-stats2.cvs"),
         sorted(
             list_for_negative_comment.items(), key=itemgetter(1), reverse=True
-        ),
+        )
     )
