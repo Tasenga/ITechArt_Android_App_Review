@@ -73,11 +73,9 @@ def process_data(data):
 
 
 def analize_bots_comments(data):
-
     all_potential_bots = set()
     all_number_of_bot_comments = 0
     all_analyzed_data = {}
-
     for (analyzed_data, potential_bots, number_of_bot_comments) in run_func_parallel(
         process_data, run_func_parallel(prepare_data, data)
     ):
@@ -87,15 +85,15 @@ def analize_bots_comments(data):
             all_analyzed_data.setdefault(reviewer, []).extend(reviews)
 
     # analize_bots_comments_in_concatenated_data
-    processing_data, additional_number_of_bot_comments = filter_bot_review(
+    data_without_bot_comments, additional_number_of_bot_comments = filter_bot_review(
         all_analyzed_data, all_potential_bots
     )
     all_number_of_bot_comments += additional_number_of_bot_comments
-    sorted_processing_data = {
+    sorted_data_without_bot_comments = {
         reviewer: sorted(reviews, key=lambda review: review.time)
-        for reviewer, reviews in all_analyzed_data.items()
+        for reviewer, reviews in data_without_bot_comments.items()
     }
-    return sorted_processing_data, all_number_of_bot_comments
+    return sorted_data_without_bot_comments, all_number_of_bot_comments
 
 
 def get_nearest_reviews(data):
