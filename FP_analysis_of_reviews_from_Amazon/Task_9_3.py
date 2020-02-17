@@ -1,4 +1,4 @@
-from os.path import dirname, abspath
+from os.path import dirname, abspath, join
 from pathlib import Path
 from common_module.work_with_document import get_data_from_json, save_file
 import re
@@ -57,17 +57,21 @@ if __name__ == "__main__":
     chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
     data = run_func_parallel(get_data_from_json, chunks)
 
+    # path_to_save
+    Path(join(dirname(abspath(__file__)), "resulting data")).mkdir(parents=True, exist_ok=True)
+    path_to_save = Path(join(dirname(abspath(__file__)), "resulting data"))
+
     list_for_positive_comment, list_for_negative_comment = analyze_popular_words_by_sentiment(data)
 
     save_file(
-        Path(dirname(abspath(__file__))),
+        path_to_save,
         "words-stats1.cvs",
         sorted(
             list_for_positive_comment.items(), key=itemgetter(1), reverse=True
         ),
     )
     save_file(
-        Path(dirname(abspath(__file__))),
+        path_to_save,
         "words-stats2.cvs",
         sorted(
             list_for_negative_comment.items(), key=itemgetter(1), reverse=True

@@ -17,8 +17,7 @@ def get_data_from_csv(file):
 
 def save_file(path, filename, data, mode="w"):
     """function creates a file from the transferred data"""
-    Path(join(path, "resulting data")).mkdir(parents=True, exist_ok=True)
-    with Path(join(path, "resulting data"), filename).open(mode=mode, newline="") as csv_file:
+    with Path(path, filename).open(mode=mode, newline="") as csv_file:
         writer = csv.writer(csv_file, delimiter="\t")
         for line in data:
             writer.writerow(line)
