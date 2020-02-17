@@ -70,12 +70,7 @@ if __name__ == "__main__":
     apps_scores = get_dict_of_apps_with_score(data)
     save_file(
         path_to_save,
-        tuple(
-            map(
-                lambda app: (app.asin, app.average_score, app.number_of_votes),
-                apps_scores.values(),
-            )
-        ),
+        [(app.asin, app.average_score) for app in apps_scores.values()],
     )
 
 
