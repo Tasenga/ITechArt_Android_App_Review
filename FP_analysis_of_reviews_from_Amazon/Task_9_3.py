@@ -54,12 +54,13 @@ def analyze_popular_words_by_sentiment(data):
 
 if __name__ == "__main__":
 
-    chunks = Path(dirname(abspath(__file__)), "source", "data").iterdir()
+    cwd = dirname(abspath(__file__))
+    chunks = Path(cwd, "source", "data").iterdir()
     data = run_func_parallel(get_data_from_json, chunks)
 
     # path_to_save
-    Path(dirname(abspath(__file__)), "resulting data").mkdir(parents=True, exist_ok=True)
-    path_to_save = Path(dirname(abspath(__file__)), "resulting data")
+    path_to_save = Path(cwd, "resulting data")
+    path_to_save.mkdir(parents=True, exist_ok=True)
 
     list_for_positive_comment, list_for_negative_comment = analyze_popular_words_by_sentiment(data)
 

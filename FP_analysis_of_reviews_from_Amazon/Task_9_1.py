@@ -58,18 +58,18 @@ def total_nonanalys_data(data):
 
 if __name__ == "__main__":
 
-    path = Path(dirname(abspath(__file__)))
-    chunks = Path(path, "source", "data").iterdir()
+    cwd = dirname(abspath(__file__))
+    chunks = Path(cwd, "source", "data").iterdir()
     data = run_func_parallel(get_data_from_json, chunks)
-    filename = "general-stats.cvs"
 
     # path_to_save
-    Path(join(path, "resulting data")).mkdir(parents=True, exist_ok=True)
-    path_to_save = Path(path, "resulting data", "general-stats.cvs")
+    path = Path(join(cwd, "resulting data"))
+    path.mkdir(parents=True, exist_ok=True)
+    file_to_save = Path(path, "general-stats.cvs")
 
     apps_scores = get_dict_of_apps_with_score(data)
     save_file(
-        path_to_save,
+        file_to_save,
         [(app.asin, app.average_score) for app in apps_scores.values()],
     )
 
@@ -81,7 +81,7 @@ if __name__ == "__main__":
         ["asin:", best_review["asin"]],
         ["reviewText:", best_review["reviewText"]],
     ]
-    save_file(path_to_save, comment_for_best_review, "a")
+    save_file(file_to_save, comment_for_best_review, "a")
 
 
     nearest_comments, all_number_of_bot_comments = get_nearest_reviews(data)
@@ -102,7 +102,7 @@ if __name__ == "__main__":
         ["length comment_1:", len(nearest_comments[1][1])],
         ["length comment_2:", len(nearest_comments[1][2])],
     ]
-    save_file(path_to_save, comment_for_nearest_review, "a")
+    save_file(file_to_save, comment_for_nearest_review, "a")
 
 
     bad_review = bad_comment(run_func_parallel(bad_comment, data))
@@ -115,7 +115,7 @@ if __name__ == "__main__":
         ["asin:", bad_review["asin"]],
         ["reviewText:", bad_review["reviewText"]],
     ]
-    save_file(path_to_save, comment_for_bad_review, "a")
+    save_file(file_to_save, comment_for_bad_review, "a")
 
 
     (common_count_unanalyzed_avg_score,
@@ -151,4 +151,4 @@ if __name__ == "__main__":
             " - to get the application which received the most useless message",
         ],
     ]
-    save_file(path_to_save, comment_for_count_unanalyzed_data, "a")
+    save_file(file_to_save, comment_for_count_unanalyzed_data, "a")
