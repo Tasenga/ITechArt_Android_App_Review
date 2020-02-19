@@ -1,10 +1,10 @@
 #!/usr/bin/env python
 
 import os.path
-import sys
-from subprocess import Popen, PIPE
+from subprocess import Popen, PIPE, check_output
 import py_compile
 
+# git config core.hooksPath ./git.hooks
 BASE_DIR, hooks_folder = os.path.split(os.path.dirname(os.path.abspath(__file__)))
 
 code_result = 0
@@ -22,9 +22,6 @@ for root, dirs, files in os.walk(BASE_DIR, topdown=True):
                     print(err.exc_value)
                     code_result += 1
 
-for file in os.listdir(os.path.join(BASE_DIR, '__pycache__')):
-    os.remove(os.path.join(BASE_DIR, '__pycache__', file))
-
 
 # pushing to master branch restriction.
 def runBash(command):
@@ -36,6 +33,8 @@ def runBash(command):
 if str(runBash('git symbolic-ref HEAD')).find("master") != -1:
     print("You are not allowed commit changes in master branch")
     code_result = 1
+
+check_output(f"python -m unittest discover -t ..", cwd=Path(BASE_DIR, "FP_analysis_of_reviews_from_Amazon"), shell=True)
 
 exit(code_result)
 
