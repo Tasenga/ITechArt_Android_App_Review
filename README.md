@@ -47,15 +47,9 @@ pip install -r requirements.txt
 
 ## Running the tests
 
-//Explain how to run the automated tests for this system *automated tests absent*
-
-### Break down into end to end tests
-
-//Explain what these tests test and why *automated tests absent*
-
-```
-//Give an example *automated tests absent*
-```
+Unit tests were created for module "FP_analysis_of_reviews_from_Amazon" with using basic python module "Unittest".
+Tests run from module "FP_analysis_of_reviews_from_Amazon" after command in command line "python -m unittest discover -t ..".
+All tests should finish successful to push module changing to external repository.
 
 ## Additional materials
 

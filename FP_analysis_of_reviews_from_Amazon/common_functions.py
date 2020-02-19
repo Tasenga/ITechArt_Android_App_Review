@@ -22,11 +22,10 @@ def get_apps_scores(data):
     value is a list of scores.
     """
     return {
-        key: [group["overall"] for group in groups]
+        key: [group["overall"] for group in groups if "overall" in group.keys()]
         for key, groups in groupby(
             sorted(data, key=lambda position: position["asin"]),
-            key=lambda position: position["asin"],
-        )
+            key=lambda position: position["asin"])
     }
 
 def get_dict_of_apps_with_score(data):

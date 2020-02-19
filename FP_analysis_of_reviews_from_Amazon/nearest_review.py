@@ -25,85 +25,88 @@ def prepare_data(data):
 
 
 def count_deltatime(data):
-    return min(
-        (data[i].time - data[i - 1].time, data[i].text, data[i - 1].text)
-        for i in range(1, len(data))
-    )
+    deltatime = []
+    for i in range(1, len(data)):
+        if data[i].time >= data[i - 1].time:
+            deltatime.append([data[i].time - data[i - 1].time, data[i].text, data[i - 1].text])
+        else:
+            raise Exception(f'deltatime should be positive integer. Deltatime '
+                            f'was: {data[i].time - data[i - 1].time}. Please, check data preparation')
+    return min(deltatime)
 
 
 def get_unix_diff_per_name(data):
     return [
         [reviews[0], count_deltatime(reviews[1])]
         if len(reviews[1]) > 1
-        else [reviews[0], ("single_review", "single_review", "single_review")]
+        else [reviews[0], ["single_review", "single_review", "single_review"]]
         for reviews in data.items()
     ]
 
 
-def get_potential_bots(data):
+def get_potential_bots(data=[]):
     return set(map(lambda comment: comment[0] if comment[1][0] == 0 else None, data))
 
 
-def filter_bot_review(data, potential_bots):
+def filter_bot_review(prepared_data, potential_bots):
 
     analyzed_data = {
         reviewerID: reviews
-        for reviewerID, reviews in data.items()
+        for reviewerID, reviews in prepared_data.items()
         if reviewerID not in potential_bots
     }
 
     number_of_bot_comments = sum(
         [
             len(reviews)
-            for reviewerID, reviews in data.items()
+            for reviewerID, reviews in prepared_data.items()
             if reviewerID in potential_bots
         ]
     )
     return analyzed_data, number_of_bot_comments
 
 
-def process_data(data):
-
-    unix_diff_per_name = get_unix_diff_per_name(data)
-
+def process_data(prepared_data):
+    unix_diff_per_name = get_unix_diff_per_name(prepared_data)
     potential_bots = get_potential_bots(unix_diff_per_name)
-
-    analyzed_data, number_of_bot_comments = filter_bot_review(data, potential_bots)
+    analyzed_data, number_of_bot_comments = filter_bot_review(prepared_data, potential_bots)
     return analyzed_data, potential_bots, number_of_bot_comments
 
 
-def analize_bots_comments(data):
+def analyze_bots_comments(data):
     all_potential_bots = set()
     all_number_of_bot_comments = 0
     all_analyzed_data = {}
-    for (analyzed_data, potential_bots, number_of_bot_comments) in run_func_parallel(
-        process_data, run_func_parallel(prepare_data, data)
-    ):
+    for (analyzed_data, potential_bots, number_of_bot_comments) in run_func_parallel(process_data, run_func_parallel(prepare_data, data)):
         all_potential_bots.update(potential_bots)
         all_number_of_bot_comments += number_of_bot_comments
         for reviewer, reviews in analyzed_data.items():
             all_analyzed_data.setdefault(reviewer, []).extend(reviews)
 
     # analize_bots_comments_in_concatenated_data
-    data_without_bot_comments, additional_number_of_bot_comments = filter_bot_review(
+    checked_concatenated_data_for_known_bots, additional_number_of_bot_comments_1 = filter_bot_review(
         all_analyzed_data, all_potential_bots
     )
-    all_number_of_bot_comments += additional_number_of_bot_comments
-    sorted_data_without_bot_comments = {
+    all_number_of_bot_comments += additional_number_of_bot_comments_1
+    sorted_all_analyzed_data_by_unix = {
         reviewer: sorted(reviews, key=lambda review: review.time)
-        for reviewer, reviews in data_without_bot_comments.items()
+        for reviewer, reviews in all_analyzed_data.items()
     }
-    return sorted_data_without_bot_comments, all_number_of_bot_comments
+    data_without_bot_comments, new_potential_bots, additional_number_of_bot_comments_2 = process_data(
+        sorted_all_analyzed_data_by_unix
+    )
+
+    all_number_of_bot_comments += additional_number_of_bot_comments_2
+
+    return data_without_bot_comments, all_number_of_bot_comments
 
 
 def get_nearest_reviews(data):
-    sorted_processing_data, all_number_of_bot_comments = analize_bots_comments(data)
-    analyzed_data, potential_bots, number_of_bot_comments = process_data(
-        sorted_processing_data
-    )
-    unix_diff_per_name = get_unix_diff_per_name(analyzed_data)
+    data_without_bot_comments, all_number_of_bot_comments = analyze_bots_comments(data)
+    unix_diff_per_name = get_unix_diff_per_name(data_without_bot_comments)
     nearest_reviews = min(
         [review for review in unix_diff_per_name if review[1][1] != "single_review"],
         key=lambda review: review[1][0],
+        default=["", [0, "", ""]]
     )
     return nearest_reviews, all_number_of_bot_comments

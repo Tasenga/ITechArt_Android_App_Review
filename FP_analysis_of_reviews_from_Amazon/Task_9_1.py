@@ -1,5 +1,5 @@
 from pathlib import Path
-from os.path import dirname, abspath, join
+from os.path import dirname, abspath
 from common_module.work_with_document import get_data_from_json, save_file
 from common_functions import *
 from nearest_review import get_nearest_reviews
@@ -11,7 +11,8 @@ def best_comment(data):
     1.2. Task_9_1.py: to create file general-stats.cvs containing information about
     messages with the most “likes” from the entire data set and the application (asin) associated with it;
     """
-    return max(data, key=lambda review: review["helpful"][0])
+    return max(data, key=lambda review: review["helpful"][0],
+               default={"asin": None, "helpful": [None, None], "reviewText": None})
 
 def bad_comment(data):
     """function returns the application which received the most useless message
@@ -20,10 +21,11 @@ def bad_comment(data):
     the application which received the most useless message;
     """
     return min([review for review in data if review["helpful"][1] != 0],
-               key=lambda review: review["helpful"][0] / review["helpful"][1])
+               key=lambda review: review["helpful"][0] / review["helpful"][1],
+               default={"asin": None, "helpful": [float('inf'), 1], "reviewText": None})
 
 
-def nonanalys_data(reviews):
+def nonanalys_data(data):
     """function returns the number of records that cannot be processed for every point above.
 
     1.5. Task_9_1: to create file general-stats.cvs containing information about
@@ -31,14 +33,14 @@ def nonanalys_data(reviews):
     """
     def count_unanalyzed(*required_keys):
         return len(
-            [review for review in reviews
-             if all(key not in review.keys() for key in required_keys)]
+            [review for review in data
+             if any(key not in review.keys() for key in required_keys)]
         )
 
     return (
         count_unanalyzed("asin", "overall"),  # avg score
-        count_unanalyzed("asin", "helpful", "reviewText"),  # best comment,
-        len([review for review in reviews if review["helpful"][1] == 0]),  # bad comment
+        count_unanalyzed("asin", "reviewText"),  # best comment,
+        len([review for review in data if review["helpful"][1] == 0]),  # bad comment
     )
 
 def total_nonanalys_data(data):
@@ -63,7 +65,7 @@ if __name__ == "__main__":
     data = run_func_parallel(get_data_from_json, chunks)
 
     # path_to_save
-    path = Path(join(cwd, "resulting data"))
+    path = Path(cwd, "resulting data")
     path.mkdir(parents=True, exist_ok=True)
     file_to_save = Path(path, "general-stats.cvs")
 
