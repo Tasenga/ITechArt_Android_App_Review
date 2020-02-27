@@ -133,10 +133,9 @@ resulting data/
 
 # Source
 *.json
-<<<<<<< HEAD
 *.gz
 *.csv
-=======
-*.csv
-*.gz
->>>>>>> development
+
+#examples
+analysis_of_user_actions/.ipynb_checkpoints
+analysis_of_user_actions/notebooks
