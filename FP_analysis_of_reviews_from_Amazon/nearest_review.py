@@ -26,12 +26,12 @@ def prepare_data(data):
 
 def count_deltatime(data):
     deltatime = []
-    for i in range(1, len(data)):
-        if data[i].time >= data[i - 1].time:
-            deltatime.append([data[i].time - data[i - 1].time, data[i].text, data[i - 1].text])
+    for el1, el2 in zip(data[:-1], data[1:]):
+        if el2.time >= el1.time:
+            deltatime.append([el2.time - el1.time, el2.text, el1.text])
         else:
             raise Exception(f'deltatime should be positive integer. Deltatime '
-                            f'was: {data[i].time - data[i - 1].time}. Please, check data preparation')
+                            f'was: {el2.time - el1.time}. Please, check data preparation')
     return min(deltatime)
 
 
@@ -44,7 +44,9 @@ def get_unix_diff_per_name(data):
     ]
 
 
-def get_potential_bots(data=[]):
+def get_potential_bots(data=None):
+    if data is None:
+        data = []
     return set(map(lambda comment: comment[0] if comment[1][0] == 0 else None, data))
 
 
@@ -105,7 +107,7 @@ def get_nearest_reviews(data):
     data_without_bot_comments, all_number_of_bot_comments = analyze_bots_comments(data)
     unix_diff_per_name = get_unix_diff_per_name(data_without_bot_comments)
     nearest_reviews = min(
-        [review for review in unix_diff_per_name if review[1][1] != "single_review"],
+        (review for review in unix_diff_per_name if review[1][1] != "single_review"),
         key=lambda review: review[1][0],
         default=["", [0, "", ""]]
     )

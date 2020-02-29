@@ -3,6 +3,7 @@ from os.path import dirname, abspath
 from common_module.work_with_document import get_data_from_json, save_file
 from common_functions import *
 from nearest_review import get_nearest_reviews
+from collections import Counter
 
 
 def best_comment(data):
@@ -11,8 +12,10 @@ def best_comment(data):
     1.2. Task_9_1.py: to create file general-stats.cvs containing information about
     messages with the most “likes” from the entire data set and the application (asin) associated with it;
     """
-    return max(data, key=lambda review: review["helpful"][0],
+    return max((review for review in data), key=lambda review: review["helpful"][0],
                default={"asin": None, "helpful": [None, None], "reviewText": None})
+    # return max(data, key=lambda review: review["helpful"][0],
+    #            default={"asin": None, "helpful": [None, None], "reviewText": None})
 
 def bad_comment(data):
     """function returns the application which received the most useless message
@@ -20,7 +23,7 @@ def bad_comment(data):
     1.3. Task_9_1: to create file general-stats.cvs containing information about
     the application which received the most useless message;
     """
-    return min([review for review in data if review["helpful"][1] != 0],
+    return min((review for review in data if review["helpful"][1] != 0),
                key=lambda review: review["helpful"][0] / review["helpful"][1],
                default={"asin": None, "helpful": [float('inf'), 1], "reviewText": None})
 
@@ -75,7 +78,6 @@ if __name__ == "__main__":
         [(app.asin, app.average_score) for app in apps_scores.values()],
     )
 
-
     best_review = best_comment(run_func_parallel(best_comment, data))
     comment_for_best_review = [
         ["Messages with the most “likes” from the entire data set and the application (asin) associated with it:"],
@@ -84,7 +86,6 @@ if __name__ == "__main__":
         ["reviewText:", best_review["reviewText"]],
     ]
     save_file(file_to_save, comment_for_best_review, "a")
-
 
     nearest_comments, all_number_of_bot_comments = get_nearest_reviews(data)
     comment_for_nearest_review = [
@@ -106,7 +107,6 @@ if __name__ == "__main__":
     ]
     save_file(file_to_save, comment_for_nearest_review, "a")
 
-
     bad_review = bad_comment(run_func_parallel(bad_comment, data))
     comment_for_bad_review = [
         ["The application which received the most useless message:"],
@@ -118,7 +118,6 @@ if __name__ == "__main__":
         ["reviewText:", bad_review["reviewText"]],
     ]
     save_file(file_to_save, comment_for_bad_review, "a")
-
 
     (common_count_unanalyzed_avg_score,
      common_count_unanalyzed_best_comment,
@@ -136,7 +135,7 @@ if __name__ == "__main__":
         [
             "{} or {}%".format(
                 all_number_of_bot_comments,
-                round(all_number_of_bot_comments / (sum(map(lambda it: len(it), data))) * 100),
+                round(all_number_of_bot_comments / (sum(len(it) for it in data)) * 100),
             ),
             " - to get the shortest interval between ratings of one user (among all users) "
             "and the length of both messages which create this interval;",
@@ -146,7 +145,7 @@ if __name__ == "__main__":
                 common_count_unanalyzed_bad_comment,
                 round(
                     common_count_unanalyzed_bad_comment
-                    / (sum(map(lambda it: len(it), data)))
+                    / (sum(len(it) for it in data))
                     * 100
                 ),
             ),
