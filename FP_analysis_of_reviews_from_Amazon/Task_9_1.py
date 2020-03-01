@@ -12,10 +12,8 @@ def best_comment(data):
     1.2. Task_9_1.py: to create file general-stats.cvs containing information about
     messages with the most “likes” from the entire data set and the application (asin) associated with it;
     """
-    return max((review for review in data), key=lambda review: review["helpful"][0],
+    return max(data, key=lambda review: review["helpful"][0],
                default={"asin": None, "helpful": [None, None], "reviewText": None})
-    # return max(data, key=lambda review: review["helpful"][0],
-    #            default={"asin": None, "helpful": [None, None], "reviewText": None})
 
 def bad_comment(data):
     """function returns the application which received the most useless message
@@ -35,15 +33,15 @@ def nonanalys_data(data):
     the number of records that cannot be processed for every point above.
     """
     def count_unanalyzed(*required_keys):
-        return len(
-            [review for review in data
-             if any(key not in review.keys() for key in required_keys)]
+        return sum(
+            1 for review in data
+             if any(key not in review.keys() for key in required_keys)
         )
 
     return (
         count_unanalyzed("asin", "overall"),  # avg score
         count_unanalyzed("asin", "reviewText"),  # best comment,
-        len([review for review in data if review["helpful"][1] == 0]),  # bad comment
+        sum(1 for review in data if review["helpful"][1] == 0),  # bad comment
     )
 
 def total_nonanalys_data(data):

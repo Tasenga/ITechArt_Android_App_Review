@@ -59,11 +59,9 @@ def filter_bot_review(prepared_data, potential_bots):
     }
 
     number_of_bot_comments = sum(
-        [
             len(reviews)
             for reviewerID, reviews in prepared_data.items()
             if reviewerID in potential_bots
-        ]
     )
     return analyzed_data, number_of_bot_comments
 
