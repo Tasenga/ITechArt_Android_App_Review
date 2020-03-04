@@ -1,11 +1,12 @@
 from itertools import groupby
 from common_functions import run_func_parallel
+from dataclasses import dataclass
 
 
+@dataclass
 class ReviewTimeInfo:
-    def __init__(self, time, text):
-        self.time = time
-        self.text = text
+    time: int
+    text: str
 
 
 def prepare_data(data):
@@ -23,7 +24,6 @@ def prepare_data(data):
         )
     }
 
-
 def count_deltatime(data):
     deltatime = []
     for el1, el2 in zip(data[:-1], data[1:]):
@@ -33,7 +33,6 @@ def count_deltatime(data):
             raise Exception(f'deltatime should be positive integer. Deltatime '
                             f'was: {el2.time - el1.time}. Please, check data preparation')
     return min(deltatime)
-
 
 def get_unix_diff_per_name(data):
     return [

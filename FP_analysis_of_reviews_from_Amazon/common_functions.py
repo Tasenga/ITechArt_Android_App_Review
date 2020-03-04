@@ -1,17 +1,16 @@
 import concurrent.futures
 from itertools import groupby
-
+from dataclasses import dataclass
 
 def run_func_parallel(func, data):
     with concurrent.futures.ProcessPoolExecutor() as executor:
         return [it for it in executor.map(func, data)]
 
-
+@dataclass
 class AppScore:
-    def __init__(self, asin, total_score, number_of_votes):
-        self.asin = asin
-        self.total_score = total_score
-        self.number_of_votes = number_of_votes
+    asin: str
+    total_score: float = 0.0
+    number_of_votes: int = 0
     @property
     def average_score(self):
         return round(self.total_score / self.number_of_votes, 2)

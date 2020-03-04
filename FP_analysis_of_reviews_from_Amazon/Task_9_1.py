@@ -3,7 +3,6 @@ from os.path import dirname, abspath
 from common_module.work_with_document import get_data_from_json, save_file
 from common_functions import *
 from nearest_review import get_nearest_reviews
-from collections import Counter
 
 
 def best_comment(data):
@@ -41,7 +40,8 @@ def nonanalys_data(data):
     return (
         count_unanalyzed("asin", "overall"),  # avg score
         count_unanalyzed("asin", "reviewText"),  # best comment,
-        sum(1 for review in data if review["helpful"][1] == 0),  # bad comment
+        sum(1 for review in data if review["helpful"][1] == 0
+            or any(key not in review.keys() for key in ("asin", "reviewText"))),  # bad comment
     )
 
 def total_nonanalys_data(data):
