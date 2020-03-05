@@ -173,7 +173,6 @@ class TestProcessData(TestCase):
             "3": [ReviewTimeInfo(200, None)],
         }
         analyzed_data, potential_bots, number_of_bot_comments = process_data(data)
-        self.assertTrue(v is ReviewTimeInfo for v in analyzed_data.values())
         self.assertEqual(
             analyzed_data,
             {
@@ -242,7 +241,7 @@ class TestAnalyzeBotsComments(TestCase):
         )
         self.assertIsInstance(sorted_data_without_bot_comments, dict)
         self.assertEqual(all_number_of_bot_comments, 3)
-    def test_process_data_when_all_bots(self):
+    def test_analyze_bots_comments_when_all_bots(self):
         data1 = [
             {"reviewerID": "1", "reviewText": "a", "unixReviewTime": 100},
             {"reviewerID": "2", "reviewText": "e", "unixReviewTime": 500},
@@ -259,7 +258,7 @@ class TestAnalyzeBotsComments(TestCase):
         ) = analyze_bots_comments([data1, data2])
         self.assertEqual(sorted_data_without_bot_comments, {})
         self.assertEqual(all_number_of_bot_comments, 6)
-    def test_process_data_without_bots(self):
+    def test_analyze_bots_comments_without_bots(self):
         data1 = [
             {"reviewerID": "1", "reviewText": "a", "unixReviewTime": 200},
             {"reviewerID": "2", "reviewText": "e", "unixReviewTime": 300},
