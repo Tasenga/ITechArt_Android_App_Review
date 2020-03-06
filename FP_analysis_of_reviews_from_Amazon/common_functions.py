@@ -1,17 +1,16 @@
 import concurrent.futures
 from itertools import groupby
-
+from dataclasses import dataclass
 
 def run_func_parallel(func, data):
     with concurrent.futures.ProcessPoolExecutor() as executor:
         return [it for it in executor.map(func, data)]
 
-
+@dataclass
 class AppScore:
-    def __init__(self, asin, total_score, number_of_votes):
-        self.asin = asin
-        self.total_score = total_score
-        self.number_of_votes = number_of_votes
+    asin: str
+    total_score: float = 0.0
+    number_of_votes: int = 0
     @property
     def average_score(self):
         return round(self.total_score / self.number_of_votes, 2)
@@ -22,11 +21,10 @@ def get_apps_scores(data):
     value is a list of scores.
     """
     return {
-        key: [group["overall"] for group in groups]
+        key: [group["overall"] for group in groups if "overall" in group.keys()]
         for key, groups in groupby(
             sorted(data, key=lambda position: position["asin"]),
-            key=lambda position: position["asin"],
-        )
+            key=lambda position: position["asin"])
     }
 
 def get_dict_of_apps_with_score(data):

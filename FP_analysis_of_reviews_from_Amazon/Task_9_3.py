@@ -31,12 +31,13 @@ def get_list_of_popular_word(data):
     containing information about the most popular words from positive and negative messages.
     """
     comment_words_by_sentiment = {
-        sentiment: create_words_counter([review["reviewText"] for review in reviews])
+        sentiment: create_words_counter([review["reviewText"] for review in reviews if review["reviewText"]])
         for sentiment, reviews in groupby(
             sorted(
                 data, key=lambda review: review["overall"]
             ),
-            key=lambda review: review["overall"] >= 4)
+            key=lambda review: review["overall"] >= 4
+        )
     }
     return (
         comment_words_by_sentiment[True],  # number of words in positive comment

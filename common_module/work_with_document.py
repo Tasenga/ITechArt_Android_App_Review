@@ -31,7 +31,7 @@ def get_separeted_data_from_json(path, filename):
         data1 = []
         data2 = []
         for row in file:
-            if start in range(0, end // 4):
+            if start in range(0, end // 2):
                 data1.append(loads(row))
             else:
                 data2.append(loads(row))

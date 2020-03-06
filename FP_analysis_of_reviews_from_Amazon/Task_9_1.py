@@ -1,5 +1,5 @@
 from pathlib import Path
-from os.path import dirname, abspath, join
+from os.path import dirname, abspath
 from common_module.work_with_document import get_data_from_json, save_file
 from common_functions import *
 from nearest_review import get_nearest_reviews
@@ -11,7 +11,8 @@ def best_comment(data):
     1.2. Task_9_1.py: to create file general-stats.cvs containing information about
     messages with the most “likes” from the entire data set and the application (asin) associated with it;
     """
-    return max(data, key=lambda review: review["helpful"][0])
+    return max(data, key=lambda review: review["helpful"][0],
+               default={"asin": None, "helpful": [None, None], "reviewText": None})
 
 def bad_comment(data):
     """function returns the application which received the most useless message
@@ -19,26 +20,28 @@ def bad_comment(data):
     1.3. Task_9_1: to create file general-stats.cvs containing information about
     the application which received the most useless message;
     """
-    return min([review for review in data if review["helpful"][1] != 0],
-               key=lambda review: review["helpful"][0] / review["helpful"][1])
+    return min((review for review in data if review["helpful"][1] != 0),
+               key=lambda review: review["helpful"][0] / review["helpful"][1],
+               default={"asin": None, "helpful": [float('inf'), 1], "reviewText": None})
 
 
-def nonanalys_data(reviews):
+def nonanalys_data(data):
     """function returns the number of records that cannot be processed for every point above.
 
     1.5. Task_9_1: to create file general-stats.cvs containing information about
     the number of records that cannot be processed for every point above.
     """
     def count_unanalyzed(*required_keys):
-        return len(
-            [review for review in reviews
-             if all(key not in review.keys() for key in required_keys)]
+        return sum(
+            1 for review in data
+             if any(key not in review.keys() for key in required_keys)
         )
 
     return (
         count_unanalyzed("asin", "overall"),  # avg score
-        count_unanalyzed("asin", "helpful", "reviewText"),  # best comment,
-        len([review for review in reviews if review["helpful"][1] == 0]),  # bad comment
+        count_unanalyzed("asin", "reviewText"),  # best comment,
+        sum(1 for review in data if review["helpful"][1] == 0
+            or any(key not in review.keys() for key in ("asin", "reviewText"))),  # bad comment
     )
 
 def total_nonanalys_data(data):
@@ -63,7 +66,7 @@ if __name__ == "__main__":
     data = run_func_parallel(get_data_from_json, chunks)
 
     # path_to_save
-    path = Path(join(cwd, "resulting data"))
+    path = Path(cwd, "resulting data")
     path.mkdir(parents=True, exist_ok=True)
     file_to_save = Path(path, "general-stats.cvs")
 
@@ -73,7 +76,6 @@ if __name__ == "__main__":
         [(app.asin, app.average_score) for app in apps_scores.values()],
     )
 
-
     best_review = best_comment(run_func_parallel(best_comment, data))
     comment_for_best_review = [
         ["Messages with the most “likes” from the entire data set and the application (asin) associated with it:"],
@@ -82,7 +84,6 @@ if __name__ == "__main__":
         ["reviewText:", best_review["reviewText"]],
     ]
     save_file(file_to_save, comment_for_best_review, "a")
-
 
     nearest_comments, all_number_of_bot_comments = get_nearest_reviews(data)
     comment_for_nearest_review = [
@@ -104,7 +105,6 @@ if __name__ == "__main__":
     ]
     save_file(file_to_save, comment_for_nearest_review, "a")
 
-
     bad_review = bad_comment(run_func_parallel(bad_comment, data))
     comment_for_bad_review = [
         ["The application which received the most useless message:"],
@@ -116,7 +116,6 @@ if __name__ == "__main__":
         ["reviewText:", bad_review["reviewText"]],
     ]
     save_file(file_to_save, comment_for_bad_review, "a")
-
 
     (common_count_unanalyzed_avg_score,
      common_count_unanalyzed_best_comment,
@@ -134,7 +133,7 @@ if __name__ == "__main__":
         [
             "{} or {}%".format(
                 all_number_of_bot_comments,
-                round(all_number_of_bot_comments / (sum(map(lambda it: len(it), data))) * 100),
+                round(all_number_of_bot_comments / (sum(len(it) for it in data)) * 100),
             ),
             " - to get the shortest interval between ratings of one user (among all users) "
             "and the length of both messages which create this interval;",
@@ -144,7 +143,7 @@ if __name__ == "__main__":
                 common_count_unanalyzed_bad_comment,
                 round(
                     common_count_unanalyzed_bad_comment
-                    / (sum(map(lambda it: len(it), data)))
+                    / (sum(len(it) for it in data))
                     * 100
                 ),
             ),
